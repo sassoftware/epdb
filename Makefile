@@ -31,11 +31,6 @@ dist: $(dist_files)
 		cp -a $$f $(DISTDIR)/$$f; \
 	done; \
 	tar cjf $(DISTDIR).tar.bz2 `basename $(DISTDIR)`
-	@echo "=== sanity building/testing conary ==="; \
-	cd $(DISTDIR); \
-	make > /dev/null; \
-	./conary --version > /dev/null || echo "CONARY DOES NOT WORK"; \
-	cd -; \
 	rm -rf $(DISTDIR)
 
 tag:
