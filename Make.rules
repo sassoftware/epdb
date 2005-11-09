@@ -1,0 +1,61 @@
+# -*- makefile -*-
+#
+# Copyright (c) 2004-2005 rPath, Inc.
+#
+# This program is distributed under the terms of the Common Public License,
+# version 1.0. A copy of this license should have been distributed with this
+# source file in a file called LICENSE. If it is not present, the license
+# is always available at http://www.opensource.org/licenses/cpl.php.
+#
+# This program is distributed in the hope that it will be useful, but
+# without any waranty; without even the implied warranty of merchantability
+# or fitness for a particular purpose. See the Common Public License for
+# full details.
+#
+
+PYTHON = $(shell [ -x /usr/bin/python2.4 ] && echo /usr/bin/python2.4 || echo /usr/lib/conary/python/bin/python2.4)
+PYVERSION = $(shell $(PYTHON) -c 'import os, sys; print sys.version[:3]')
+PYINCLUDE = $(shell $(PYTHON) -c 'import os, sys; print os.sep.join((sys.prefix, "include", "python" + sys.version[:3]))')
+
+pyfiles-install:
+	mkdir -p $(DESTDIR)$(conarydir)
+	for f in $(python_files); do \
+		mkdir -p `dirname $(DESTDIR)/$(sitedir)/$(DIR)/$$f`; \
+		cp -a $$f $(DESTDIR)/$(sitedir)/$(DIR)/$$f; \
+	done
+
+default-dist: dist-subdirs
+	for f in $(dist_files); do \
+		mkdir -p $(DISTDIR)/$(DIR)/`dirname $$f`; \
+		cp -a $$f $(DISTDIR)/$(DIR)/$$f; \
+	done
+
+default-install:
+	echo "nothing to install"
+
+default-all:
+	echo "nothing to build"
+
+default-clean: clean-subdirs
+	rm -f *~ .??*~ .#* *.pyo *.pyc $(generated_files)
+
+default-test:
+	$(TESTSUITE) *.py
+
+default-subdirs:
+	for d in $(SUBDIRS); do make -C $$d DIR=$$d || exit 1; done
+
+clean-subdirs:
+ifdef SUBDIRS
+	for d in $(SUBDIRS); do make -C $$d DIR=$(DIR)/$$d clean || exit 1; done
+endif
+
+install-subdirs:
+ifdef SUBDIRS
+	for d in $(SUBDIRS); do make -C $$d DIR=$(DIR)/$$d install || exit 1; done
+endif
+
+dist-subdirs:
+ifdef SUBDIRS
+	for d in $(SUBDIRS); do make -C $$d DIR=$(DIR)/$$d dist || exit 1; done
+endif
