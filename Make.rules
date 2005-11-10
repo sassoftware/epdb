@@ -12,12 +12,12 @@
 
 
 
-PYTHON = $(shell [ -x /usr/bin/python2.4 ] && echo /usr/bin/python2.4 || echo /usr/lib/conary/python/bin/python2.4)
+PYTHON = $(shell [ -x /usr/bin/python2.4 ] && echo /usr/bin/python2.4 || exit 1)
 PYVERSION = $(shell $(PYTHON) -c 'import os, sys; print sys.version[:3]')
 PYINCLUDE = $(shell $(PYTHON) -c 'import os, sys; print os.sep.join((sys.prefix, "include", "python" + sys.version[:3]))')
 
 pyfiles-install:
-	mkdir -p $(DESTDIR)$(conarydir)
+	mkdir -p $(DESTDIR)$(epdbdir)
 	for f in $(python_files); do \
 		mkdir -p `dirname $(DESTDIR)/$(sitedir)/$(DIR)/$$f`; \
 		cp -a $$f $(DESTDIR)/$(sitedir)/$(DIR)/$$f; \

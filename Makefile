@@ -2,7 +2,7 @@ export VERSION = 0.8
 export TOPDIR = $(shell pwd)
 export DISTDIR = $(TOPDIR)/epdb-$(VERSION)
 export sitedir = $(libdir)/python$(PYVERSION)/site-packages/
-export epdb = $(sitedir)/epdb
+export epdbdir = $(sitedir)/epdb
 
 extra_files =  \
     LICENSE    \
@@ -10,15 +10,19 @@ extra_files =  \
     Makefile   \
     NEWS
 
-python_files = __init__.py	\
-               epdb.py          \
-               stackutil.py     
-
 dist_files = $(extra_files)
+
+SUBDIRS=epdb
 
 .PHONY: clean dist install subdirs
 
-dist: $(dist_files)
+all: subdirs
+
+subdirs: default-subdirs
+
+install: all install-subdirs pyfiles-install
+
+dist: $(dist_files) 
 	if ! grep "^Changes in $(VERSION)" NEWS > /dev/null 2>&1; then \
 		echo "no NEWS entry"; \
 		exit 1; \
