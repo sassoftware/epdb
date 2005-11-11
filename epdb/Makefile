@@ -5,6 +5,7 @@ extra_files =  \
 
 python_files = __init__.py	\
                epdb.py          \
+               erlcompleter.py  \
                stackutil.py     
 
 dist_files = $(extra_files) $(python_files)
