@@ -1,2 +1,4 @@
+Changes in 0.8.1:
+    * Add cross-session readline history 
 Changes in 0.8:
     * Initial seperate epdb release

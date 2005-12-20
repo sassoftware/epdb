@@ -1,4 +1,4 @@
-export VERSION = 0.8
+export VERSION = 0.8.1
 export TOPDIR = $(shell pwd)
 export DISTDIR = $(TOPDIR)/epdb-$(VERSION)
 export sitedir = $(libdir)/python$(PYVERSION)/site-packages/
