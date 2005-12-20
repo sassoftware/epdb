@@ -11,6 +11,7 @@
 
 
 """ Extended pdb """
+import atexit
 import stackutil
 import inspect
 import pdb
@@ -39,7 +40,10 @@ class Epdb(pdb.Pdb):
     # used to track the number of times a set_trace has been seen
     trace_counts = {'default' : [ True, 0 ]}
 
+    _historyPath = os.path.expanduser('~/.epdbhistory')
+
     def __init__(self):
+        
         self._exc_type = None
         self._exc_msg = None
         self._tb = None
@@ -47,7 +51,16 @@ class Epdb(pdb.Pdb):
         pdb.Pdb.__init__(self)
         if hasReadline:
             self._completer = erlcompleter.ECompleter()
+            if self._historyPath:
+                if os.path.exists(self._historyPath):
+                    readline.read_history_file(self._historyPath)
+                atexit.register(self._save_history)
+
         self.prompt = '(Epdb) '
+
+    def _save_history(self):
+        if self._historyPath:
+            readline.write_history_file(self._historyPath)
     
     def do_savestack(self, path):
         
