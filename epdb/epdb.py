@@ -51,15 +51,17 @@ class Epdb(pdb.Pdb):
         pdb.Pdb.__init__(self)
         if hasReadline:
             self._completer = erlcompleter.ECompleter()
-            if self._historyPath:
-                if os.path.exists(self._historyPath):
-                    readline.read_history_file(self._historyPath)
-                atexit.register(self._save_history)
 
         self.prompt = '(Epdb) '
 
-    def _save_history(self):
-        if self._historyPath:
+    def read_history(self):
+        if (hasReadline and self._historyPath 
+            and os.path.exists(self._historyPath)):
+            readline.read_history_file(self._historyPath)
+        
+    def save_history(self):
+        if hasReadline and self._historyPath:
+            readline.set_history_length(1000)
             readline.write_history_file(self._historyPath)
     
     def do_savestack(self, path):
@@ -602,11 +604,13 @@ class Epdb(pdb.Pdb):
                 print "No init function"
 
     def interaction(self, frame, traceback):
+        self.read_history()
         self.setup(frame, traceback)
         self._displayItems()
         self.print_stack_entry(self.stack[self.curindex])
         self.cmdloop()
         self.forget()
+        self.save_history()
         if not self.__old_stdout is None:
             sys.stdout.flush()
             # now we reset stdout to be the whatever it was before
