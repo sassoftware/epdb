@@ -55,14 +55,19 @@ class Epdb(pdb.Pdb):
         self.prompt = '(Epdb) '
 
     def read_history(self):
-        if (hasReadline and self._historyPath 
-            and os.path.exists(self._historyPath)):
-            readline.read_history_file(self._historyPath)
+        if hasReadline and self._historyPath:
+            try:
+                readline.read_history_file(self._historyPath)
+            except:
+                pass
         
     def save_history(self):
         if hasReadline and self._historyPath:
             readline.set_history_length(1000)
-            readline.write_history_file(self._historyPath)
+            try:
+                readline.write_history_file(self._historyPath)
+            except:
+                pass
     
     def do_savestack(self, path):
         
