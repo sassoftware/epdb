@@ -11,7 +11,6 @@
 
 
 """ Extended pdb """
-import atexit
 import stackutil
 import inspect
 import pdb
@@ -41,9 +40,10 @@ class Epdb(pdb.Pdb):
     trace_counts = {'default' : [ True, 0 ]}
 
     _historyPath = os.path.expanduser('~/.epdbhistory')
+    prompt = '(Epdb) '
+    multiline_prompt = '| '
 
     def __init__(self):
-        
         self._exc_type = None
         self._exc_msg = None
         self._tb = None
@@ -53,24 +53,48 @@ class Epdb(pdb.Pdb):
             self._completer = erlcompleter.ECompleter()
 
         self.prompt = '(Epdb) '
+        self._oldHistory = []
 
-    def read_history(self):
+    def store_old_history(self):
+        historyLen = readline.get_current_history_length()
+        oldHistory = [ readline.get_history_item(x) for x in xrange(historyLen)]
+        self._oldHistory = oldHistory
+        readline.clear_history()
+
+    def restore_old_history(self):
+        readline.clear_history()
+        for line in self._oldHistory:
+            if line is None:
+                continue
+            readline.add_history(line)
+        self._oldHistory = []
+
+    def read_history(self, storeOldHistory=False):
         if hasReadline and self._historyPath:
+            if storeOldHistory:
+                self.store_old_history()
+            else:
+                readline.clear_history()
+
             try:
                 readline.read_history_file(self._historyPath)
             except:
                 pass
-        
-    def save_history(self):
+
+    def save_history(self, restoreOldHistory=False):
         if hasReadline and self._historyPath:
             readline.set_history_length(1000)
             try:
                 readline.write_history_file(self._historyPath)
             except:
                 pass
-    
+
+            if restoreOldHistory:
+                self.restore_old_history()
+            else:
+                readline.clear_history()
+
     def do_savestack(self, path):
-        
         if 'stack' in self.__dict__:
             # when we're saving we always 
             # start from the top
@@ -271,22 +295,31 @@ class Epdb(pdb.Pdb):
             return self.multiline(origLine)
         if line.count('(') > line.count(')'):
             return self.multiline(origLine)
-        return pdb.Pdb.default(self, origLine)
+        try:
+            self.save_history()
+            return pdb.Pdb.default(self, line)
+        finally:
+            self.read_history()
+            
 
-                
     def multiline(self, firstline=''):
         full_input = []
+        # keep a list of the entries that we've made in history
+        old_hist = []
         if firstline:
             print '  ' + firstline
             full_input.append(firstline)
         while True:
+            if hasReadline:
+                # add the current readline position
+                old_hist.append(readline.get_current_history_length())
             if self.use_rawinput:
                 try:
-                    line = raw_input('| ')
+                    line = raw_input(self.multiline_prompt)
                 except EOFError:
                     line = 'EOF'
             else:
-                self.stdout.write('| ')
+                self.stdout.write(self.multiline_prompt)
                 self.stdout.flush()
                 line = self.stdin.readline()
                 if not len(line):
@@ -296,14 +329,39 @@ class Epdb(pdb.Pdb):
             if line == 'EOF':
                 break
             full_input.append(line)
+
+        # add the final readline history position
+        if hasReadline:
+            old_hist.append(readline.get_current_history_length())
+
+        cmd = '\n'.join(full_input) + '\n'
+
+        if hasReadline:
+            # remove the old, individual readline history entries.
+
+            # first remove any duplicate entries
+            old_hist = sorted(set(old_hist))
+
+            # Make sure you do this in reversed order so you move from
+            # the end of the history up.
+            for pos in reversed(old_hist):
+                # get_current_history_length returns pos + 1
+                readline.remove_history_item(pos - 1)
+            # now add the full line
+            readline.add_history(cmd)
+
         locals = self.curframe.f_locals
         globals = self.curframe.f_globals
-        print ''
+        print
+        self.save_history()
         try:
-            code = compile('\n'.join(full_input) + '\n', '<stdin>', 'single')
-            exec code in globals, locals
-        except:
-            print self._reprExc()
+            try:
+                code = compile(cmd, '<stdin>', 'single')
+                exec code in globals, locals
+            except:
+                print self._reprExc()
+        finally:
+            self.read_history()
 
     def handle_directive(self, line):
         cmd = line.split('?', 1)
@@ -331,7 +389,9 @@ class Epdb(pdb.Pdb):
     def do_p(self, arg):
         cmd = arg.split('?', 1)
         if len(cmd) == 1:
+            self.save_history()
             pdb.Pdb.do_p(self, arg)
+            self.read_history()
         else:
             self.default(arg)
 
@@ -609,13 +669,13 @@ class Epdb(pdb.Pdb):
                 print "No init function"
 
     def interaction(self, frame, traceback):
-        self.read_history()
+        self.read_history(storeOldHistory=True)
         self.setup(frame, traceback)
         self._displayItems()
         self.print_stack_entry(self.stack[self.curindex])
         self.cmdloop()
         self.forget()
-        self.save_history()
+        self.save_history(restoreOldHistory=True)
         if not self.__old_stdout is None:
             sys.stdout.flush()
             # now we reset stdout to be the whatever it was before
