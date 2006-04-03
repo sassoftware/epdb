@@ -57,7 +57,6 @@ class Epdb(pdb.Pdb):
         if hasReadline:
             self._completer = erlcompleter.ECompleter()
 
-        self.prompt = '(Epdb) '
         self._oldHistory = []
 
     def store_old_history(self):
