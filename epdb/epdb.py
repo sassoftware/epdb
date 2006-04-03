@@ -676,10 +676,19 @@ class Epdb(pdb.Pdb):
         self.cmdloop()
         self.forget()
         self.save_history(restoreOldHistory=True)
+        self.restore_input_output()
+
+    def switch_input_output(self):
+        self.switch_stdout()
+        self.switch_stdin()
+
+    def restore_input_output(self):
         if not self.__old_stdout is None:
             sys.stdout.flush()
             # now we reset stdout to be the whatever it was before
             sys.stdout = self.__old_stdout
+        if not self.__old_stdin is None:
+            sys.stdin = self.__old_stdin
 
     def switch_stdout(self):
         isatty = False
@@ -691,15 +700,37 @@ class Epdb(pdb.Pdb):
             # sys.stdout is not a regular file,
             # go through some hoops
             # (this is less desirable because it doesn't redirect
-            # low-level writes to 1 
-              
+            # low-level writes to 1)
+
         if not isatty:
             sys.stdout.flush()
             self.__old_stdout = sys.stdout
+            # if this fails, we'll raise an IOError
             stdout = open('/dev/tty', 'w')
             sys.stdout = stdout
         else:
             self.__old_stdout = None
+
+    def switch_stdin(self):
+        isatty = False
+        try:
+            fileno = sys.stdin.fileno()
+            isatty = os.isatty(fileno)
+        except AttributeError:
+            pass
+            # sys.stdout is not a regular file,
+            # go through some hoops
+            # (this is less desirable because it doesn't redirect
+            # low-level writes to 1)
+
+        if not isatty:
+            sys.stdin.flush()
+            self.__old_stdin = sys.stdin
+            # if this fails, we'll raise an IOError
+            stdin = open('/dev/tty', 'r')
+            sys.stdin = stdin
+        else:
+            self.__old_stdin = None
 
     # override for cases where we want to search a different
     # path for the file
@@ -799,23 +830,23 @@ class Epdb(pdb.Pdb):
         """This method is called when there is the remote possibility
         that we ever need to stop in this function."""
         if self.stop_here(frame):
-            self.switch_stdout()
+            self.switch_input_output()
             pdb.Pdb.user_call(self, frame, argument_list)
 
     def user_line(self, frame):
         """This function is called when we stop or break at this line."""
-        self.switch_stdout()
+        self.switch_input_output()
         pdb.Pdb.user_line(self, frame)
 
     def user_return(self, frame, return_value):
         """This function is called when a return trap is set here."""
-        self.switch_stdout()
+        self.switch_input_output()
         pdb.Pdb.user_return(self, frame, return_value)
 
     def user_exception(self, frame, exc_info):
         """This function is called if an exception occurs,
         but only if we are to stop at or just below this level."""
-        self.switch_stdout()
+        self.switch_input_output()
         pdb.Pdb.user_exception(self, frame, exc_info)
 
 
@@ -880,7 +911,7 @@ def post_mortem(t, exc_type=None, exc_msg=None):
     p.reset()
     while t.tb_next is not None:
         t = t.tb_next
-    p.switch_stdout()
+    p.switch_input_output()
     p.interaction(t.tb_frame, t)
 
 def matchFileOnDirPath(curpath, pathdir):
