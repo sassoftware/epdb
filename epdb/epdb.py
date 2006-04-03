@@ -34,7 +34,6 @@ from pdb import _saferepr
 
 class Epdb(pdb.Pdb):
     _historyPath = os.path.expanduser('~/.epdbhistory')
-    prompt = '(Epdb) '
     multiline_prompt = '| '
     fail_silently_on_ioerror = False # if set to True, ignore calls to epdb
                                      # when there is no usable device
@@ -58,6 +57,7 @@ class Epdb(pdb.Pdb):
             self._completer = erlcompleter.ECompleter()
 
         self._oldHistory = []
+        self.prompt = '(Epdb) '
 
     def store_old_history(self):
         historyLen = readline.get_current_history_length()
@@ -299,7 +299,7 @@ class Epdb(pdb.Pdb):
             return self.multiline(origLine)
         try:
             self.save_history()
-            return pdb.Pdb.default(self, line)
+            return pdb.Pdb.default(self, origLine)
         finally:
             self.read_history()
             
