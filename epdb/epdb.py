@@ -11,6 +11,7 @@
 
 
 """ Extended pdb """
+import bdb
 import stackutil
 import inspect
 import pdb
@@ -32,16 +33,20 @@ import traceback
 from pdb import _saferepr
 
 class Epdb(pdb.Pdb):
+    _historyPath = os.path.expanduser('~/.epdbhistory')
+    prompt = '(Epdb) '
+    multiline_prompt = '| '
+    fail_silently_on_ioerror = False # if set to True, ignore calls to epdb
+                                     # when there is no usable device
+
     # epdb will print to here instead of to sys.stdout,
     # and restore stdout when done
+    __old_stdin  = None
     __old_stdout = None
     _displayList = {}
     # used to track the number of times a set_trace has been seen
     trace_counts = {'default' : [ True, 0 ]}
 
-    _historyPath = os.path.expanduser('~/.epdbhistory')
-    prompt = '(Epdb) '
-    multiline_prompt = '| '
 
     def __init__(self):
         self._exc_type = None
@@ -78,7 +83,7 @@ class Epdb(pdb.Pdb):
 
             try:
                 readline.read_history_file(self._historyPath)
-            except:
+            except IOError:
                 pass
 
     def save_history(self, restoreOldHistory=False):
@@ -86,7 +91,7 @@ class Epdb(pdb.Pdb):
             readline.set_history_length(1000)
             try:
                 readline.write_history_file(self._historyPath)
-            except:
+            except IOError:
                 pass
 
             if restoreOldHistory:
@@ -143,8 +148,6 @@ class Epdb(pdb.Pdb):
             while frame.f_globals['__name__'] in ('epdb', 'pdb', 'bdb', 'cmd'):
                 frame = frame.f_back
         stackutil.printStack(frame, sys.stderr)
-
-    
 
     def do_printframe(self, arg):
         if not arg:
@@ -669,6 +672,16 @@ class Epdb(pdb.Pdb):
                 print "No init function"
 
     def interaction(self, frame, traceback):
+        try:
+            self.switch_input_output()
+        except IOError:
+            if True or self.fail_silently_on_ioerror:
+                # pretend like we never saw this breakpoint
+                self.set_continue()
+                return
+            else:
+                raise
+
         self.read_history(storeOldHistory=True)
         self.setup(frame, traceback)
         self._displayItems()
@@ -830,23 +843,19 @@ class Epdb(pdb.Pdb):
         """This method is called when there is the remote possibility
         that we ever need to stop in this function."""
         if self.stop_here(frame):
-            self.switch_input_output()
             pdb.Pdb.user_call(self, frame, argument_list)
 
     def user_line(self, frame):
         """This function is called when we stop or break at this line."""
-        self.switch_input_output()
         pdb.Pdb.user_line(self, frame)
 
     def user_return(self, frame, return_value):
         """This function is called when a return trap is set here."""
-        self.switch_input_output()
         pdb.Pdb.user_return(self, frame, return_value)
 
     def user_exception(self, frame, exc_info):
         """This function is called if an exception occurs,
         but only if we are to stop at or just below this level."""
-        self.switch_input_output()
         pdb.Pdb.user_exception(self, frame, exc_info)
 
 
@@ -911,7 +920,6 @@ def post_mortem(t, exc_type=None, exc_msg=None):
     p.reset()
     while t.tb_next is not None:
         t = t.tb_next
-    p.switch_input_output()
     p.interaction(t.tb_frame, t)
 
 def matchFileOnDirPath(curpath, pathdir):
