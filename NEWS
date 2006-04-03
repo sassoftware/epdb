@@ -3,6 +3,9 @@ Changes in 0.9:
     * multiline entries will be stored as one entry
     * input is set to /dev/tty as well as output if the current input stream
       in not a terminal
+    * The new fail_silently_on_ioerror config value will allow you to avoid
+      raising an exception when a breakpoint is hit an no terminal is available.      Use with caution as it could allow you to leave unintended breakpoints in
+      your program.
 Changes in 0.8.1:
     * Add cross-session readline history 
 Changes in 0.8:
