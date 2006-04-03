@@ -1,3 +1,8 @@
+Changes in 0.9: 
+    * readline history should be much more well behaved
+    * multiline entries will be stored as one entry
+    * input is set to /dev/tty as well as output if the current input stream
+      in not a terminal
 Changes in 0.8.1:
     * Add cross-session readline history 
 Changes in 0.8:
