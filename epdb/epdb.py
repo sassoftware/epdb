@@ -177,14 +177,9 @@ class Epdb(pdb.Pdb):
     do_f = do_file
 
     def do_until(self, arg):
-        try:
-            int(arg)
-        except ValueError:
-            print "Error: only specify line numbers for until"
-            return 0
-        filename = self.canonic(self.curframe.f_code.co_filename)
-        if self.checkline(filename, int(arg)):
-            self.do_tbreak(arg)
+        numBreaks = len(self.breaks)
+        self.do_tbreak(arg)
+        if len(self.breaks) > numBreaks:
             self.set_continue()
             return 1
         else:
@@ -280,6 +275,36 @@ class Epdb(pdb.Pdb):
             pdb.Pdb.do_list(self, arg)
 
     do_l = do_list
+
+    def lookupmodule(self, filename):
+        """Helper function for break/clear parsing -- may be overridden.
+
+        lookupmodule() translates (possibly incomplete) file or module name
+        into an absolute file name.
+        """
+        if os.path.isabs(filename) and  os.path.exists(filename):
+            return filename
+        f = os.path.join(sys.path[0], filename)
+        if  os.path.exists(f) and self.canonic(f) == self.mainpyfile:
+            return f
+        root, ext = os.path.splitext(filename)
+        origFileName = filename
+        if ext == '':
+            filename = filename + '.py'
+        if os.path.isabs(filename):
+            return filename
+        for dirname in sys.path:
+            while os.path.islink(dirname):
+                dirname = os.path.realpath(os.path.join(os.path.dirname(dirname), os.readlink(dirname)))
+            fullname = os.path.join(dirname, filename)
+            print 'checking %s' % fullname
+            if os.path.exists(fullname):
+                return fullname
+        if origFileName in sys.modules:
+            return sys.modules[origFileName].__file__
+        return None
+
+
 
     def default(self, line):
         if line[0] == '!': line = line[1:]
@@ -542,49 +567,6 @@ class Epdb(pdb.Pdb):
         if displayedItem:
             print
 
-    def do_showdata(self, arg):
-        result = self._eval(item, self._showdata)
-
-    def _define(self, obj):
-        if inspect.isclass(obj):
-            bases = inspect.getmro(obj)
-            bases = [ x.__name__ for x in bases[1:] ]
-            if bases:
-                bases = ' -- Bases (' + ', '.join(bases) + ')'
-            else:
-                bases = '' 
-            if hasattr(obj, '__init__') and inspect.isroutine(obj.__init__):
-                try:
-                    initfn = obj.__init__.im_func
-                    argspec = inspect.getargspec(initfn)
-                    # get rid of self from arg list...
-                    fnargs = argspec[0][1:] 
-                    newArgSpec = (fnargs, argspec[1], argspec[2], argspec[3])
-                    argspec = inspect.formatargspec(*newArgSpec)
-                except TypeError:
-                    argspec = '(?)'
-            else:
-                argspec = ''
-            print "Class " + obj.__name__ + argspec + bases
-        elif inspect.ismethod(obj) or type(obj).__name__ == 'method-wrapper':
-            m_class = obj.im_class
-            m_self = obj.im_self
-            m_func = obj.im_func
-            name = m_class.__name__ + '.' +  m_func.__name__
-            #if m_self:
-            #    name = "<Bound>"  + name
-            argspec = inspect.formatargspec(*inspect.getargspec(m_func))
-            print "%s%s" % (name, argspec)
-        elif type(obj).__name__ == 'builtin_function_or_method':
-            print obj
-        elif inspect.isfunction(obj):
-            name = obj.__name__
-            argspec = inspect.formatargspec(*inspect.getargspec(obj))
-            print "%s%s" % (name, argspec)
-        else:
-            print type(obj)
-
-
     def do_define(self, arg):
         self._eval(arg, self._define)
 
@@ -630,9 +612,6 @@ class Epdb(pdb.Pdb):
         else:
             print type(obj)
 
-
-    def do_define(self, arg):
-        self._eval(arg, self._define)
 
     def do_doc(self, arg):
         self._eval(arg, self._doc)
