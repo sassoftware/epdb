@@ -1,3 +1,6 @@
+Changes in 0.9.1:
+    * until now works with filenames
+    * breakpoints/etc that take filenames will also now take sys.module entries, e.g. foo.bar, if sys.modules['foo.bar'] exists.
 Changes in 0.9: 
     * readline history should be much more well behaved
     * multiline entries will be stored as one entry
