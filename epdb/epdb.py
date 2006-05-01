@@ -297,7 +297,6 @@ class Epdb(pdb.Pdb):
             while os.path.islink(dirname):
                 dirname = os.path.realpath(os.path.join(os.path.dirname(dirname), os.readlink(dirname)))
             fullname = os.path.join(dirname, filename)
-            print 'checking %s' % fullname
             if os.path.exists(fullname):
                 return fullname
         if origFileName in sys.modules:
