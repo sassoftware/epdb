@@ -1,3 +1,7 @@
+Changes in @NEW@:
+    * epdb will automatically switch to the process group with session control,
+      so that in programs where setpgrp() has been called, such processes 
+      can still be debugged.
 Changes in 0.9: 
     * readline history should be much more well behaved
     * multiline entries will be stored as one entry
