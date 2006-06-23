@@ -42,6 +42,7 @@ class Epdb(pdb.Pdb):
     # and restore stdout when done
     __old_stdin  = None
     __old_stdout = None
+    __old_pgid = None
     _displayList = {}
     # used to track the number of times a set_trace has been seen
     trace_counts = {'default' : [ True, 0 ]}
@@ -671,6 +672,7 @@ class Epdb(pdb.Pdb):
     def switch_input_output(self):
         self.switch_stdout()
         self.switch_stdin()
+        self.switch_pgid()
 
     def restore_input_output(self):
         if not self.__old_stdout is None:
@@ -679,6 +681,15 @@ class Epdb(pdb.Pdb):
             sys.stdout = self.__old_stdout
         if not self.__old_stdin is None:
             sys.stdin = self.__old_stdin
+        if self.__old_pgid is not None:
+	    os.setpgid(0, self.__old_pgid)
+
+    def switch_pgid(self):
+	if os.getpgrp() != os.tcgetpgrp(0):
+	    self.__old_pgid = os.getpgrp()
+            os.setpgid(0, os.tcgetpgrp(0))
+        else:
+            self.__old_stdout = None
 
     def switch_stdout(self):
         isatty = False
