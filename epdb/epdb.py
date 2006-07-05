@@ -685,11 +685,14 @@ class Epdb(pdb.Pdb):
 	    os.setpgid(0, self.__old_pgid)
 
     def switch_pgid(self):
-	if os.getpgrp() != os.tcgetpgrp(0):
-	    self.__old_pgid = os.getpgrp()
-            os.setpgid(0, os.tcgetpgrp(0))
-        else:
-            self.__old_stdout = None
+        try:
+            if os.getpgrp() != os.tcgetpgrp(0):
+                self.__old_pgid = os.getpgrp()
+                os.setpgid(0, os.tcgetpgrp(0))
+            else:
+                self.__old_pgid = None
+        except OSError:
+            self.__old_pgid = None
 
     def switch_stdout(self):
         isatty = False
