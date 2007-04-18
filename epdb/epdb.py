@@ -1,3 +1,4 @@
+#!/usr/bin/python2.4
 #
 # Copyright (c) 2004-2005 rPath, Inc.
 #
@@ -24,11 +25,20 @@ except ImportError:
     hasReadline = False
 else:
     hasReadline = True
+import signal
 import socket
 import string
 import sys
 import tempfile
 import traceback
+
+try:
+    sys.path.append('/home/dbc/rpl/hg/telnet')
+    import telnetserver
+    import telnetclient
+    hasTelnet = True
+except ImportError:
+    hasTelnet = False
 
 from pdb import _saferepr
 
@@ -47,8 +57,8 @@ class Epdb(pdb.Pdb):
     # used to track the number of times a set_trace has been seen
     trace_counts = {'default' : [ True, 0 ]}
 
-
     def __init__(self):
+        self._server = None
         self._exc_type = None
         self._exc_msg = None
         self._tb = None
@@ -98,6 +108,38 @@ class Epdb(pdb.Pdb):
                 self.restore_old_history()
             else:
                 readline.clear_history()
+
+    if hasTelnet:
+        # telnet server support.
+        # if enabled, you can serve a epdb session.
+        def serve(self, port=8080):
+            print 'Serving on port %s' % port
+            self._server = telnetserver.InvertedTelnetServer(('', port))
+            self._server.handle_request()
+            self.set_trace(skip=2)
+
+        def serve_post_mortem(self, t, exc_type=None, exc_msg=None, port=8080):
+            print 'Serving on port %s' % port
+            self._server = telnetserver.InvertedTelnetServer(('', port))
+            self._server.handle_request()
+            self.post_mortem(t, exc_type, exc_msg, port)
+
+        def do_detach(self, arg):
+            if self.server:
+                print ('Leaving process in debug state - use "close" to'
+                       ' stop debug session')
+                self._server.close_request()
+                self._server.handle_request()
+            else:
+                print "Not attached via telnet"
+
+        def do_close(self, arg):
+            if self.server:
+                print 'Ending epdb session - use "detach" to stop serving'
+                self._server.close_request()
+                return True
+            else:
+                print "Not attached via telnet"
 
     def do_savestack(self, path):
         if 'stack' in self.__dict__:
@@ -304,8 +346,6 @@ class Epdb(pdb.Pdb):
             return sys.modules[origFileName].__file__
         return None
 
-
-
     def default(self, line):
         if line[0] == '!': line = line[1:]
         if self.handle_directive(line):
@@ -327,7 +367,6 @@ class Epdb(pdb.Pdb):
             return pdb.Pdb.default(self, origLine)
         finally:
             self.read_history()
-            
 
     def multiline(self, firstline=''):
         full_input = []
@@ -669,17 +708,26 @@ class Epdb(pdb.Pdb):
         self.save_history(restoreOldHistory=True)
         self.restore_input_output()
 
+    def post_mortem(self, t, exc_type, exc_msg):
+        p._exc_type = exc_type
+        p._exc_msg = exc_msg
+        p._tb = t
+        p.reset()
+        while t.tb_next is not None:
+            t = t.tb_next
+        p.interaction(t.tb_frame, t)
+
     def switch_input_output(self):
         self.switch_stdout()
         self.switch_stdin()
         self.switch_pgid()
 
     def restore_input_output(self):
-        if not self.__old_stdout is None:
+        if self.__old_stdout is not None:
             sys.stdout.flush()
             # now we reset stdout to be the whatever it was before
             sys.stdout = self.__old_stdout
-        if not self.__old_stdin is None:
+        if self.__old_stdin is not None:
             sys.stdin = self.__old_stdin
         if self.__old_pgid is not None:
 	    os.setpgid(0, self.__old_pgid)
@@ -903,15 +951,19 @@ def set_trace(marker='default'):
 
 st = set_trace
 
+if hasTelnet:
+    def serve(port=8080):
+        Epdb().serve(port)
+    
+    def serve_post_mortem(t, exc_type=None, exc_msg=None, port=8080):
+        Epdb().serve_post_mortem(t, exc_type, exc_msg, port)
+
+    def connect(host='localhost', port=8080):
+        t = telnetclient.TelnetClient(host, port)
+        t.interact()
+
 def post_mortem(t, exc_type=None, exc_msg=None):
-    p = Epdb()
-    p._exc_type = exc_type
-    p._exc_msg = exc_msg
-    p._tb = t
-    p.reset()
-    while t.tb_next is not None:
-        t = t.tb_next
-    p.interaction(t.tb_frame, t)
+    Epdb().post_mortem(t, exc_type=None, exc_msg=None)
 
 def matchFileOnDirPath(curpath, pathdir):
     """Find match for a file by slicing away its directory elements
@@ -984,4 +1036,27 @@ def _removeQuoteSet(line, quote1, quote2):
             return None
         secondPoint += firstPoint
         line = line[:firstPoint] + line[(secondPoint+2*ln):]
+
+def main(argv):
+    if len(argv) == 1:
+        set_trace()
+        return
+    command = argv[1]
+    if command == 'connect':
+        if len(argv) > 2:
+            host = argv[2]
+        else:
+            host = 'localhost'
+        if len(argv) > 3:
+            port = int(argv[3])
+        else:
+            port = 8080
+        connect(host=host, port=port)
+    else:
+        print "usage: connect [host] [port]"
+        return 1
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))
 
