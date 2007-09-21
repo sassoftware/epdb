@@ -124,7 +124,7 @@ class Epdb(pdb.Pdb):
             self.post_mortem(t, exc_type, exc_msg, port)
 
         def do_detach(self, arg):
-            if self.server:
+            if self._server:
                 print ('Leaving process in debug state - use "close" to'
                        ' stop debug session')
                 self._server.close_request()
@@ -133,7 +133,7 @@ class Epdb(pdb.Pdb):
                 print "Not attached via telnet"
 
         def do_close(self, arg):
-            if self.server:
+            if self._server:
                 print 'Ending epdb session - use "detach" to stop serving'
                 self._server.close_request()
                 return True
