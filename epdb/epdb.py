@@ -33,7 +33,6 @@ import tempfile
 import traceback
 
 try:
-    sys.path.append('/home/dbc/rpl/hg/telnet')
     import telnetserver
     import telnetclient
     hasTelnet = True
@@ -746,7 +745,7 @@ class Epdb(pdb.Pdb):
         isatty = False
         try:
             fileno = sys.stdout.fileno()
-            isatty = os.isatty(fileno)
+            isatty = isinstance(sys.stdout, file) and os.isatty(fileno)
         except AttributeError:
             pass
             # sys.stdout is not a regular file,
@@ -767,7 +766,7 @@ class Epdb(pdb.Pdb):
         isatty = False
         try:
             fileno = sys.stdin.fileno()
-            isatty = os.isatty(fileno)
+            isatty = isinstance(sys.stdout, file) and os.isatty(fileno)
         except AttributeError:
             pass
             # sys.stdout is not a regular file,
