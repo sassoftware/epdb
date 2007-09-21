@@ -136,7 +136,7 @@ class Epdb(pdb.Pdb):
             if self._server:
                 print 'Ending epdb session - use "detach" to stop serving'
                 self._server.close_request()
-                return True
+                return self.do_continue('')
             else:
                 print "Not attached via telnet"
 
