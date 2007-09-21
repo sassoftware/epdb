@@ -55,9 +55,9 @@ class Epdb(pdb.Pdb):
     _displayList = {}
     # used to track the number of times a set_trace has been seen
     trace_counts = {'default' : [ True, 0 ]}
+    _server = None
 
     def __init__(self):
-        self._server = None
         self._exc_type = None
         self._exc_msg = None
         self._tb = None
@@ -112,30 +112,35 @@ class Epdb(pdb.Pdb):
         # telnet server support.
         # if enabled, you can serve a epdb session.
         def serve(self, port=8080):
-            print 'Serving on port %s' % port
-            self._server = telnetserver.InvertedTelnetServer(('', port))
-            self._server.handle_request()
+            if not Epdb._server:
+                print 'Serving on port %s' % port
+                Epdb._server = telnetserver.InvertedTelnetServer(('', port))
+                Epdb._server.handle_request()
+                Epdb._port = port
             self.set_trace(skip=2)
 
         def serve_post_mortem(self, t, exc_type=None, exc_msg=None, port=8080):
-            print 'Serving on port %s' % port
-            self._server = telnetserver.InvertedTelnetServer(('', port))
-            self._server.handle_request()
+            if not Epdb._server:
+                print 'Serving on port %s' % port
+                Epdb._server = telnetserver.InvertedTelnetServer(('', port))
+                Epdb._server.handle_request()
             self.post_mortem(t, exc_type, exc_msg, port)
 
         def do_detach(self, arg):
-            if self._server:
+            if Epdb._server:
                 print ('Leaving process in debug state - use "close" to'
                        ' stop debug session')
-                self._server.close_request()
-                self._server.handle_request()
+                Epdb._server.close_request()
+                Epdb._server = telnetserver.InvertedTelnetServer(('', Epdb._port))
+                Epdb._server.handle_request()
             else:
                 print "Not attached via telnet"
 
         def do_close(self, arg):
-            if self._server:
+            if Epdb._server:
                 print 'Ending epdb session - use "detach" to stop serving'
-                self._server.close_request()
+                Epdb._server.close_request()
+                Epdb._server = None
                 return self.do_continue('')
             else:
                 print "Not attached via telnet"

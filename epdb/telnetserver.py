@@ -171,6 +171,7 @@ class InvertedTelnetRequestHandler(TelnetRequestHandler):
                 protocol = TelnetServerProtocolHandler(self.request, masterFd)
                 protocol.handle()
             finally:
+                os.close(masterFd)
                 os._exit(1)
 
 class InvertedTelnetServer(TelnetServer):
@@ -200,6 +201,9 @@ class InvertedTelnetServer(TelnetServer):
             return
         if self.verify_request(request, client_address):
             try:
+                # we only serve once, and we want to free up the port
+                # for future serves.
+                self.socket.close()
                 self.process_request(request, client_address)
             except SocketConnected, err:
                 self._serve_process(err.slaveFd, err.serverPid)

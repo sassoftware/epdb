@@ -11,6 +11,8 @@ import termios
 
 from telnetlib import IAC, IP, SB, SE, NAWS
 
+TERMKEY = '\x1d' # equals ^]
+
 def getTerminalSize():
     s = struct.pack('HHHH', 0, 0, 0, 0)
     result = fcntl.ioctl(sys.stdin.fileno(), termios.TIOCGWINSZ, s)
@@ -51,17 +53,48 @@ class TelnetClient(telnetlib.Telnet):
         rows, cols = getTerminalSize()
         self.sock.sendall(IAC + SB + NAWS + chr(cols) + chr(rows) + IAC + SE)
 
+    def write(self, buffer):
+        if TERMKEY in buffer:
+            buffer = buffer[:buffer.find(TERMKEY)]
+            if buffer:
+                telnetlib.Telnet.write(self, buffer)
+            self.close()
+        else:
+            telnetlib.Telnet.write(self, buffer)
+
     def interact(self):
         self.set_raw_mode()
         self.updateTerminalSize()
         try:
+            writeBuffer = []
             while 1:
-                try:
-                    rfd, wfd, xfd = select.select([self, sys.stdin], [], [])
-                except select.error, err:
-                    if err.args[0] != errno.EINTR: # ignore interrupted select
-                        raise
-                if self in rfd:
+                readyWriters = []
+                readyReaders = []
+                neededReaders = [self, sys.stdin]
+                neededWriters = []
+                while 1:
+                    try:
+                        rfd, wfd, xfd = select.select(neededReaders,
+                                                      neededWriters, [])
+                    except select.error, err:
+                        if err.args[0] != errno.EINTR: # ignore interrupted select
+                            raise
+                    readyReaders.extend(rfd)
+                    [neededReaders.remove(x) for x in rfd if x in neededReaders]
+                    readyWriters.extend(wfd)
+                    [neededWriters.remove(x) for x in wfd if x in neededWriters]
+                    if self in readyReaders:
+                        if sys.stdout in readyWriters:
+                            break
+                        else:
+                            neededWriters.append(sys.stdout)
+                    if sys.stdin in readyReaders:
+                        if self in readyWriters:
+                            break
+                        else:
+                            neededWriters.append(self)
+                if self in readyReaders and sys.stdout in readyWriters:
+                    select.select([sys.stdin], [sys.stdout], [])
                     try:
                         text = self.read_eager()
                     except EOFError:
@@ -70,7 +103,7 @@ class TelnetClient(telnetlib.Telnet):
                     if text:
                         sys.stdout.write(text)
                         sys.stdout.flush()
-                if sys.stdin in rfd:
+                if sys.stdin in readyReaders and self in readyWriters:
                     line = sys.stdin.read(4096)
                     if not line:
                         break
