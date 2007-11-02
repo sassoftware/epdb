@@ -1,3 +1,5 @@
+Changes in 0.11:
+    * The post_mortem() command was broken in 0.10, this has been fixed.
 Changes in 0.10:
     * epdb now supports a "serve()" command to serve epdb requests remotely
 Changes in 0.9.1.1:

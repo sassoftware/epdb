@@ -713,13 +713,13 @@ class Epdb(pdb.Pdb):
         self.restore_input_output()
 
     def post_mortem(self, t, exc_type, exc_msg):
-        p._exc_type = exc_type
-        p._exc_msg = exc_msg
-        p._tb = t
-        p.reset()
+        self._exc_type = exc_type
+        self._exc_msg = exc_msg
+        self._tb = t
+        self.reset()
         while t.tb_next is not None:
             t = t.tb_next
-        p.interaction(t.tb_frame, t)
+        self.interaction(t.tb_frame, t)
 
     def switch_input_output(self):
         self.switch_stdout()
