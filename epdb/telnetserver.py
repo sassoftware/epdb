@@ -208,9 +208,9 @@ class InvertedTelnetServer(TelnetServer):
             except SocketConnected, err:
                 self._serve_process(err.slaveFd, err.serverPid)
                 return
-            except:
+            except Exception, err:
                 self.handle_error(request, client_address)
-                self.close_request(request)
+                self.close_request()
 
     def _serve_process(self, slaveFd, serverPid):
         """
