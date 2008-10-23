@@ -45,6 +45,8 @@ class TelnetClient(telnetlib.Telnet):
 
     def ctrl_c(self, int, tb):
         self.sock.sendall(IAC + IP)
+        self.sock.sendall('close\n')
+        raise KeyboardInterrupt
 
     def sigwinch(self, int, tb):
         self.updateTerminalSize()
