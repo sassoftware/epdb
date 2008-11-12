@@ -154,7 +154,11 @@ class InvertedTelnetRequestHandler(TelnetRequestHandler):
     def handle(self):
         masterFd, slaveFd = pty.openpty()
 
-        signal.signal(signal.SIGTTOU, signal.SIG_IGN)
+        try:
+            # if we're not in the main thread, this will not work.
+            signal.signal(signal.SIGTTOU, signal.SIG_IGN)
+        except:
+            pass
         pid = os.fork()
         if pid:
             os.close(masterFd)
