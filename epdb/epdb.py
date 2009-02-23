@@ -734,7 +734,7 @@ class Epdb(pdb.Pdb):
         if self.__old_stdin is not None:
             sys.stdin = self.__old_stdin
         if self.__old_pgid is not None:
-	    os.setpgid(0, self.__old_pgid)
+            os.setpgid(0, self.__old_pgid)
 
     def switch_pgid(self):
         try:
