@@ -17,9 +17,9 @@ import sys
 import string
 import tempfile
 import traceback
-import xmlrpclib
+import xmlrpc.client
 
-from repr import Repr
+from reprlib import Repr
 _repr = Repr()
 _repr.maxstring = 3000
 _saferepr = _repr.repr
@@ -98,7 +98,7 @@ def _printFrame(f, output=sys.stderr):
     globals = f.f_globals
     output.write(">> %s:%s: %s.%s(%s)\n" % ( c.co_filename, f.f_lineno, globals['__name__'], c.co_name, ', '.join(args) ))
 
-    localkeys = [ l for l in f.f_locals.keys() if not inspect.ismodule(locals[l] ) ] 
+    localkeys = [ l for l in list(f.f_locals.keys()) if not inspect.ismodule(locals[l] ) ] 
     if argcount > 0:
         output.write("  Params: \n")
         for var in varnames[:argcount]:
@@ -126,7 +126,7 @@ def _printFrame(f, output=sys.stderr):
 
 def _getStringValue(val):
     try:
-        if isinstance(val, xmlrpclib.ServerProxy):
+        if isinstance(val, xmlrpc.client.ServerProxy):
             rval = "<Server Proxy>"
         elif hasattr(val, 'asString'):
             rval = val.asString()
@@ -140,9 +140,9 @@ def _getStringValue(val):
         else:
             rval = val
         return rval
-    except Exception, e:
+    except Exception as e:
         try:
             return '<Exception occured while converting %s to string: %s' %(repr(val), e)
-        except Exception, e:
+        except Exception as e:
             return '<Exception occured while converting to repr: %s' %(e)
 

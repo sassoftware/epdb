@@ -10,4 +10,4 @@
 # or fitness for a particular purpose. See the MIT License for full details.
 
 
-from epdb import *
+from .epdb import *
