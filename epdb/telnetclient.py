@@ -78,7 +78,7 @@ class TelnetClient(telnetlib.Telnet):
                     try:
                         rfd, wfd, xfd = select.select(neededReaders,
                                                       neededWriters, [])
-                    except select.error as err:
+                    except select.error, err:
                         if err.args[0] != errno.EINTR: # ignore interrupted select
                             raise
                     readyReaders.extend(rfd)
@@ -100,7 +100,7 @@ class TelnetClient(telnetlib.Telnet):
                     try:
                         text = self.read_eager()
                     except EOFError:
-                        print('*** Connection closed by remote host ***')
+                        print '*** Connection closed by remote host ***'
                         break
                     if text:
                         sys.stdout.write(text)

@@ -22,7 +22,7 @@ This server does _NOT_ do LINEMODE, instead it is character based.  This means
 to talk to this server using the standard telnet client, you'll need to first
 type "CTRL-] mode char\n"
 """
-from socketserver import TCPServer, BaseRequestHandler
+from SocketServer import TCPServer, BaseRequestHandler
 import fcntl
 import os
 import pty
@@ -209,10 +209,10 @@ class InvertedTelnetServer(TelnetServer):
                 # for future serves.
                 self.socket.close()
                 self.process_request(request, client_address)
-            except SocketConnected as err:
+            except SocketConnected, err:
                 self._serve_process(err.slaveFd, err.serverPid)
                 return
-            except Exception as err:
+            except Exception, err:
                 self.handle_error(request, client_address)
                 self.close_request()
 
@@ -264,6 +264,6 @@ class SocketConnected(Exception):
 
 
 if __name__ == '__main__':
-    print('serving on 8081....')
+    print 'serving on 8081....'
     t = TelnetServer(('', 8081))
     t.serve_forever()

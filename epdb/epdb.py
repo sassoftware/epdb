@@ -18,7 +18,7 @@ import pdb
 import os
 import re
 try:
-    from . import erlcompleter
+    import erlcompleter
     import readline
 except ImportError:
     hasReadline = False
@@ -32,9 +32,9 @@ import tempfile
 import traceback
 
 try:
-    from .epdb import telnetserver
-    from .epdb import telnetclient
-    from .epdb import stackutil
+    from epdb import telnetserver
+    from epdb import telnetclient
+    from epdb import stackutil
     hasTelnet = True
 except ImportError:
     hasTelnet = False
@@ -71,7 +71,7 @@ class Epdb(pdb.Pdb):
 
     def store_old_history(self):
         historyLen = readline.get_current_history_length()
-        oldHistory = [ readline.get_history_item(x) for x in range(historyLen)]
+        oldHistory = [ readline.get_history_item(x) for x in xrange(historyLen)]
         self._oldHistory = oldHistory
         readline.clear_history()
 
@@ -113,7 +113,7 @@ class Epdb(pdb.Pdb):
         # if enabled, you can serve a epdb session.
         def serve(self, port=8080):
             if not Epdb._server:
-                print('Serving on port %s' % port)
+                print 'Serving on port %s' % port
                 Epdb._server = telnetserver.InvertedTelnetServer(('', port))
                 Epdb._server.handle_request()
                 Epdb._port = port
@@ -121,7 +121,7 @@ class Epdb(pdb.Pdb):
 
         def serve_post_mortem(self, t, exc_type=None, exc_msg=None, port=8080):
             if not Epdb._server:
-                print('Serving on port %s' % port)
+                print 'Serving on port %s' % port
                 Epdb._server = telnetserver.InvertedTelnetServer(('', port))
                 Epdb._server.handle_request()
             self.post_mortem(t, exc_type, exc_msg, port)
@@ -134,16 +134,16 @@ class Epdb(pdb.Pdb):
                 Epdb._server = telnetserver.InvertedTelnetServer(('', Epdb._port))
                 Epdb._server.handle_request()
             else:
-                print("Not attached via telnet")
+                print "Not attached via telnet"
 
         def do_close(self, arg):
             if Epdb._server:
-                print('Ending epdb session - use "detach" to stop serving')
+                print 'Ending epdb session - use "detach" to stop serving'
                 Epdb._server.close_request()
                 Epdb._server = None
                 return self.do_continue('')
             else:
-                print("Not attached via telnet")
+                print "Not attached via telnet"
 
     def do_savestack(self, path):
         if 'stack' in self.__dict__:
@@ -160,7 +160,7 @@ class Epdb(pdb.Pdb):
         else:
             output = open(path, 'w')
         stackutil.printStack(frame, output)
-        print("Stack saved to %s" % path)
+        print "Stack saved to %s" % path
 
     def do_mailstack(self, arg):
         tolist = arg.split()
@@ -182,7 +182,7 @@ class Epdb(pdb.Pdb):
             extracontent = string.joinfields(lines, "")
         stackutil.mailStack(frame, tolist, sender + '@' + host, subject,
                             extracontent)
-        print("Mailed stack to %s" % tolist)
+        print "Mailed stack to %s" % tolist
 
 
     def do_printstack(self, arg):
@@ -207,20 +207,20 @@ class Epdb(pdb.Pdb):
                 # start at -1 (top) and go down...
                 depth = 0 - (depth + 1)
         if 'stack' in self.__dict__:
-            print("Depth = %d" % depth)
+            print "Depth = %d" % depth
             frame = self.stack[depth][0]
         else:
             frame = sys._getframe(1)
             while frame.f_globals['__name__'] in ('epdb', 'pdb', 'bdb', 'cmd'):
                 frame = frame.f_back
-            for i in range(0, depth):
+            for i in xrange(0, depth):
                 frame = frame.f_back
         stackutil.printFrame(frame, sys.stderr)
 
     def do_file(self, arg):
         frame, lineno = self.stack[self.curindex]
         filename = self.canonic(frame.f_code.co_filename)
-        print("%s:%s" % (filename, lineno)) 
+        print "%s:%s" % (filename, lineno) 
     do_f = do_file
 
     def do_until(self, arg):
@@ -234,31 +234,31 @@ class Epdb(pdb.Pdb):
 
     def do_set(self, arg):
         if not arg:
-            keys = list(self._config.keys())
+            keys = self._config.keys()
             keys.sort()
             for key in keys:
-                print("%s: %s" % (key, self._config[key]))
+                print "%s: %s" % (key, self._config[key])
         else:
             args = arg.split(None, 1)
             if len(args) == 1:
                 key = args[0]
                 if key in self._config:
-                    print("Removing %s: %s" % (key, self._config[key]))
+                    print "Removing %s: %s" % (key, self._config[key])
                     del self._config[key]
                 else:
-                    print("%s: Not set" % (key))
+                    print "%s: Not set" % (key)
             else:
                 key, value = args
                 if(hasattr(self, '_set_' + key)):
                     fn = getattr(self, '_set_' + key)
                     fn(value)
                 else:
-                    print("No such config value")
+                    print "No such config value"
 
     def do_trace_cond(self, args):
         args = args.split(' ', 1)
         if len(args) not in (1, 2):
-            print("trace_cond [marker] <cond>")
+            print "trace_cond [marker] <cond>"
         if len(args) == 1:
             cond = args[0]
             marker = 'default'
@@ -282,23 +282,23 @@ class Epdb(pdb.Pdb):
                 rv = (type(cond) == bool) or bool(cond(1))
                 self.set_trace_cond(marker, cond)
             except:
-                print(self._reprExc())
+                print self._reprExc()
     do_tc = do_trace_cond
 
     def _set_path(self, paths):
         paths = paths.split(' ')
         for path in paths:
             if path[0] != '/':
-                print("must give absolute path")
+                print "must give absolute path"
             if not os.path.exists(path):
-                print("Path %s does not exist" % path)
+                print "Path %s does not exist" % path
             if path[-1] == '/':
                 path = path[:-1]
             path = os.path.realpath(path)
             if 'path' not in self._config:
                 self._config['path'] = []
             self._config['path'].append(path)
-        print("Set path to %s" % self._config['path'])
+        print "Set path to %s" % self._config['path']
 
     def do_list(self, arg):
         rel = re.compile(r'^[-+] *[0-9]* *$')
@@ -377,7 +377,7 @@ class Epdb(pdb.Pdb):
         # keep a list of the entries that we've made in history
         old_hist = []
         if firstline:
-            print('  ' + firstline)
+            print '  ' + firstline
             full_input.append(firstline)
         while True:
             if hasReadline:
@@ -385,7 +385,7 @@ class Epdb(pdb.Pdb):
                 old_hist.append(readline.get_current_history_length())
             if self.use_rawinput:
                 try:
-                    line = input(self.multiline_prompt)
+                    line = raw_input(self.multiline_prompt)
                 except EOFError:
                     line = 'EOF'
             else:
@@ -422,14 +422,14 @@ class Epdb(pdb.Pdb):
 
         locals = self.curframe.f_locals
         globals = self.curframe.f_globals
-        print()
+        print
         self.save_history()
         try:
             try:
                 code = compile(cmd, '<stdin>', 'single')
-                exec(code, globals, locals)
+                exec code in globals, locals
             except:
-                print(self._reprExc())
+                print self._reprExc()
         finally:
             self.read_history()
 
@@ -476,19 +476,19 @@ class Epdb(pdb.Pdb):
                     prefix = obj.__name__
                 else:
                     prefix = obj.__class__.__name__
-                print(prefix + '.' + methodName)
+                print prefix + '.' + methodName
 
     def _showdata(self, obj):
         data = self._getMembersOfType(obj, 'd')
         data.sort()
-        print([ x[0] for x in data])
+        print [ x[0] for x in data]
 
     def _showclasses(self, obj):
         classes = self._getMembersOfType(obj, 'c')
         classes.sort()
         for (className, class_) in classes:
             self._define(class_)
-            print()
+            print
 
     def _objtype(self, obj):
         if inspect.isroutine(obj) or type(obj).__name__ == 'method-wrapper':
@@ -509,7 +509,7 @@ class Epdb(pdb.Pdb):
         except:
             if printExc:
                 exc = self._reprExc()
-                print(exc)
+                print exc
                 return False, exc
             else:
                 return False, self._reprExc()
@@ -546,8 +546,8 @@ class Epdb(pdb.Pdb):
             elif params[0] in ('enable','disable','delete'):
                 try:
                     nums = [int(x) for x in params[1:]]
-                except ValueError as msg:
-                    print('***', ValueError, msg)
+                except ValueError, msg:
+                    print '***', ValueError, msg
                     return
                 missing = []
                 _nums = []
@@ -568,8 +568,8 @@ class Epdb(pdb.Pdb):
                         del self._displayList[num]
                 self._listDisplayItems()
                 if missing:
-                    print("Warning: could not find display num(s) %s" \
-                                                        % ','.join(missing))
+                    print "Warning: could not find display num(s) %s" \
+                                                        % ','.join(missing)
             else:
                 if self._displayList:
                     displayNum = max(self._displayList) + 1
@@ -580,35 +580,35 @@ class Epdb(pdb.Pdb):
 
     def _listDisplayItems(self):
         displayedItem = False
-        for num in sorted(self._displayList.keys()):
+        for num in sorted(self._displayList.iterkeys()):
             if not displayedItem:
                 displayedItem = True
-                print()
-                print("Cmds to display:")
+                print
+                print "Cmds to display:"
             enabled, item = self._displayList[num]
             if not enabled:
-                print("%d: %s (disabled)" % (num, item))
+                print "%d: %s (disabled)" % (num, item)
             else:
-                print("%d: %s" % (num, item))
+                print "%d: %s" % (num, item)
         if displayedItem:
-            print()
+            print
         else:
-            print("*** No items set to display at each cmd")
+            print "*** No items set to display at each cmd"
 
 
     def _displayItems(self):
         displayedItem = False
-        for num in sorted(self._displayList.keys()):
+        for num in sorted(self._displayList.iterkeys()):
             enabled, item = self._displayList[num]
             if not enabled:
                 continue
             if not displayedItem:
                 displayedItem = True
-                print()
+                print
             passed, result = self._eval(item, printExc = False)
-            print("%d: %s = %s" % (num, item, _saferepr(result)))
+            print "%d: %s = %s" % (num, item, _saferepr(result))
         if displayedItem:
-            print()
+            print
 
     def do_define(self, arg):
         self._eval(arg, self._define)
@@ -626,7 +626,7 @@ class Epdb(pdb.Pdb):
                 bases = '' 
             if hasattr(obj, '__init__') and inspect.isroutine(obj.__init__):
                 try:
-                    initfn = obj.__init__.__func__
+                    initfn = obj.__init__.im_func
                     argspec = inspect.getargspec(initfn)
                     # get rid of self from arg list...
                     fnargs = argspec[0][1:] 
@@ -636,24 +636,24 @@ class Epdb(pdb.Pdb):
                     argspec = '(?)'
             else:
                 argspec = ''
-            print("Class " + obj.__name__ + argspec + bases)
+            print "Class " + obj.__name__ + argspec + bases
         elif inspect.ismethod(obj) or type(obj).__name__ == 'method-wrapper':
-            m_class = obj.__self__.__class__
-            m_self = obj.__self__
-            m_func = obj.__func__
+            m_class = obj.im_class
+            m_self = obj.im_self
+            m_func = obj.im_func
             name = m_class.__name__ + '.' +  m_func.__name__
             #if m_self:
             #    name = "<Bound>"  + name
             argspec = inspect.formatargspec(*inspect.getargspec(m_func))
-            print("%s%s" % (name, argspec))
+            print "%s%s" % (name, argspec)
         elif type(obj).__name__ == 'builtin_function_or_method':
-            print(obj)
+            print obj
         elif inspect.isfunction(obj):
             name = obj.__name__
             argspec = inspect.formatargspec(*inspect.getargspec(obj))
-            print("%s%s" % (name, argspec))
+            print "%s%s" % (name, argspec)
         else:
-            print(type(obj))
+            print type(obj)
 
 
     def do_doc(self, arg):
@@ -665,7 +665,7 @@ class Epdb(pdb.Pdb):
             if result.__doc__ is not None:
                 docstr = result.__doc__
             elif inspect.ismethod(result):
-                bases = inspect.getmro(result.__self__.__class__)
+                bases = inspect.getmro(result.im_class)
                 found = False
                 for base in bases:
                     if hasattr(base, result.__name__):
@@ -680,17 +680,17 @@ class Epdb(pdb.Pdb):
                     docstr = None
             else:
                 docstr = None
-            print("\"\"\"%s\"\"\"" % docstr)
+            print "\"\"\"%s\"\"\"" % docstr
             if docloc:
-                print("(Found doc in %s)" % docloc)
+                print "(Found doc in %s)" % docloc
             
         if inspect.isclass(result):
             if hasattr(result, '__init__'):
                 self.do_define(arg + '.__init__')
                 if hasattr(result.__init__, '__doc__'):
-                    print("\"\"\"%s\"\"\"" % result.__init__.__doc__)
+                    print "\"\"\"%s\"\"\"" % result.__init__.__doc__
             else:
-                print("No init function")
+                print "No init function"
 
     def interaction(self, frame, traceback):
         try:
@@ -861,9 +861,9 @@ class Epdb(pdb.Pdb):
         locals = self.curframe.f_locals
         p = Epdb()
         p.prompt = "(%s) " % self.prompt.strip()
-        print("ENTERING RECURSIVE DEBUGGER")
+        print "ENTERING RECURSIVE DEBUGGER"
         sys.call_tracing(p.run, (arg, globals, locals))
-        print("LEAVING RECURSIVE DEBUGGER")
+        print "LEAVING RECURSIVE DEBUGGER"
         sys.settrace(self.trace_dispatch)
         self.lastcmd = p.lastcmd
 
@@ -933,7 +933,7 @@ def set_trace_cond(*args, **kw):
         or it can be a number, in which case the break will
         only be called.
     """
-    for key, val in kw.items():
+    for key, val in kw.iteritems():
         Epdb.set_trace_cond(key, val)
     for arg in args:
         Epdb.set_trace_cond(arg, True)
@@ -1057,7 +1057,7 @@ def main(argv):
             port = 8080
         connect(host=host, port=port)
     else:
-        print("usage: connect [host] [port]")
+        print "usage: connect [host] [port]"
         return 1
     return 0
 
