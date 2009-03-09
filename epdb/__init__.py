@@ -124,7 +124,7 @@ class Epdb(pdb.Pdb):
                 print 'Serving on port %s' % port
                 Epdb._server = epdb_server.InvertedTelnetServer(('', port))
                 Epdb._server.handle_request()
-            self.post_mortem(t, exc_type, exc_msg, port)
+            self.post_mortem(t, exc_type, exc_msg)
 
         def do_detach(self, arg):
             if Epdb._server:
