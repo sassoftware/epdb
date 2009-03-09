@@ -11,7 +11,7 @@
 # or fitness for a particular purpose. See the MIT License for full details.
 
 
- """ Extended pdb """
+""" Extended pdb """
 import bdb
 import inspect
 import pdb
