@@ -13,6 +13,7 @@
 
 """ Extended pdb """
 import bdb
+import stackutil
 import inspect
 import pdb
 import os
@@ -32,9 +33,8 @@ import tempfile
 import traceback
 
 try:
-    from epdb import telnetserver
-    from epdb import telnetclient
-    from epdb import stackutil
+    import telnetserver
+    import telnetclient
     hasTelnet = True
 except ImportError:
     hasTelnet = False
