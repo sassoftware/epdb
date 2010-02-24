@@ -21,5 +21,10 @@ setup(name = "epdb",
                       'Operating System :: OS Independent',
                       'Topic :: Development',
                       ],
+      entry_points = {
+            'nose.plugins.0.10': [
+                'epdb-debug = epdb.epdb_nose:Epdb'
+            ]
+        }
       )
 
