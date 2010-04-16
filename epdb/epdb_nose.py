@@ -7,6 +7,7 @@ drop into epdb on failure, use ``--epdb-failures``.
 import epdb
 import sys
 from nose.plugins.base import Plugin
+import traceback
 
 class Epdb(Plugin):
     """
@@ -52,6 +53,7 @@ class Epdb(Plugin):
         ec, ev, tb = err
         stdout = sys.stdout
         sys.stdout = sys.__stdout__
+        traceback.print_exc()
         try:
             epdb.post_mortem(tb)
         finally:
