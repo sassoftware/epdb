@@ -4,11 +4,10 @@ extra_files =  \
     Makefile   
 
 python_files = __init__.py	\
-               epdb.py          \
                erlcompleter.py  \
-               telnetserver.py  \
-               telnetclient.py  \
-               stackutil.py     
+               epdb_server.py  \
+               epdb_client.py  \
+               epdb_stackutil.py     
 
 dist_files = $(extra_files) $(python_files)
 

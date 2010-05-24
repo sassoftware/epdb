@@ -8,7 +8,8 @@ extra_files =  \
     LICENSE    \
     Make.rules \
     Makefile   \
-    NEWS
+    NEWS       \
+    setup.py
 
 dist_files = $(extra_files)
 
