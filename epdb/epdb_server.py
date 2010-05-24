@@ -33,8 +33,7 @@ import struct
 import sys
 import telnetlib
 import termios
-import tty
-from telnetlib import IAC, IP, SB, SE, DO, DONT, WILL, WONT, TM, LINEMODE, NAWS
+from telnetlib import IAC, IP, SB, SE, DO, DONT, WILL, TM, NAWS
 
 class TelnetServerProtocolHandler(telnetlib.Telnet):
     """

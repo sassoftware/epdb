@@ -12,7 +12,6 @@
 
 
 """ Extended pdb """
-import bdb
 import inspect
 import pdb
 import os
@@ -24,7 +23,6 @@ except ImportError:
     hasReadline = False
 else:
     hasReadline = True
-import signal
 import socket
 import string
 import sys
@@ -686,7 +684,7 @@ class Epdb(pdb.Pdb):
             
         if inspect.isclass(result):
             if hasattr(result, '__init__'):
-                self.do_define(arg + '.__init__')
+                self._define(result)
                 if hasattr(result.__init__, '__doc__'):
                     print "\"\"\"%s\"\"\"" % result.__init__.__doc__
             else:
