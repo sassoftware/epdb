@@ -65,7 +65,9 @@ class TelnetClient(telnetlib.Telnet):
 
     def updateTerminalSize(self):
         rows, cols = getTerminalSize()
-        self.sock.sendall(IAC + SB + NAWS + chr(cols) + chr(rows) + IAC + SE)
+        out = struct.pack('>HH', cols, rows)
+        out.replace('\xFF', '\xFF\xFF')  # escape IAC
+        self.sock.sendall(IAC + SB + NAWS + out + IAC + SE)
 
     def write(self, buffer):
         if TERMKEY in buffer:
@@ -78,8 +80,8 @@ class TelnetClient(telnetlib.Telnet):
 
     def interact(self):
         self.set_raw_mode()
-        self.updateTerminalSize()
         try:
+            self.updateTerminalSize()
             writeBuffer = []
             while 1:
                 readyWriters = []
