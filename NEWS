@@ -1,3 +1,9 @@
+Changes in 0.13:
+    * Fixed a crash in epdb_client when the terminal is > 255 columns wide
+    * Fixed terminal control bytes being emitted when epdb is imported
+Changes in 0.12:
+    * Changed license to MIT
+    * Fixed crash when trying to serve() from a secondary thread
 Changes in 0.11:
     * The post_mortem() command was broken in 0.10, this has been fixed.
 Changes in 0.10:
