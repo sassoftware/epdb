@@ -30,7 +30,7 @@ except ImportError:
     hasTelnet = False
 
 from pdb import _saferepr
-from epdb.excepthook import excepthook  # pyflakes=ingore
+from epdb.epdb_excepthook import excepthook  # pyflakes=ingore
 
 class Epdb(pdb.Pdb):
     _historyPath = os.path.expanduser('~/.epdbhistory')
