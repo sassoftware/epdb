@@ -19,7 +19,9 @@ python_files = __init__.py	\
                erlcompleter.py  \
                epdb_server.py  \
                epdb_client.py  \
-               epdb_stackutil.py     
+               epdb_stackutil.py \
+               formattrace.py \
+               excepthook.py
 
 dist_files = $(extra_files) $(python_files)
 
