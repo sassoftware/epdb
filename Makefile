@@ -10,7 +10,7 @@
 # or fitness for a particular purpose. See the MIT License for full details.
 #
 
-export VERSION = 0.12
+export VERSION = 0.14
 export TOPDIR = $(shell pwd)
 export DISTDIR = $(TOPDIR)/epdb-$(VERSION)
 export sitedir = $(libdir)/python$(PYVERSION)/site-packages/
