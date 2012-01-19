@@ -1,3 +1,5 @@
+Changes in 0.14:
+    * Added backtrace formatter and exception hook
 Changes in 0.13:
     * Fixed a crash in epdb_client when the terminal is > 255 columns wide
     * Fixed terminal control bytes being emitted when epdb is imported
