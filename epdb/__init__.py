@@ -15,11 +15,14 @@ import inspect
 import pdb
 import os
 import re
+import sys
+import bdb
 import socket
 import string
-import sys
+import logging
 import tempfile
 import traceback
+from StringIO import StringIO
 
 try:
     import epdb_server
@@ -30,7 +33,10 @@ except ImportError:
     hasTelnet = False
 
 from pdb import _saferepr
-from epdb.epdb_excepthook import excepthook  # pyflakes=ingore
+
+from formattrace import formatTrace
+
+log = logging.getLogger('epdb')
 
 class Epdb(pdb.Pdb):
     _historyPath = os.path.expanduser('~/.epdbhistory')
@@ -915,7 +921,90 @@ class Epdb(pdb.Pdb):
             return matches
         else:
             return pdb.Pdb.complete(self, text, state)
-        
+
+log = logging.getLogger('epdb.exception_hook')
+
+class excepthook(object):
+    """
+    Creates an exception hook that supports interactive debugging, traceback
+    logging, and error reporting.
+
+    @param debug: enable/disable interactive debugging (optional, default: True)
+    @type debug: boolean
+    @param debugCtrlC: enable/disable interactive debugging when ctrl-c is
+        pressed. (optional, default: False)
+    @type debugCtrlC: boolean
+    @param prefix: file name prefix to use for full traceback files. (optional,
+        default: 'error-')
+    @type prefix: string
+    @param error: error message to present if interactive debugging is
+        disabled. (optional)
+    @type error: string
+    """
+
+    default_error = """\
+ERROR: An unexpected condition has occurred.
+
+Error details follow:
+
+%(filename)s:%(lineno)s
+%(errtype)s: %(errmsg)s
+
+The complete related traceback has been saved as %(stackfile)s
+"""
+
+    def __init__(self, debug=True, debugCtrlC=False, prefix='error-',
+        error=None, syslog=None):
+
+        self.debug = debug
+        self.debugCtrlC = debugCtrlC
+        self.prefix = prefix
+        self.error = error
+        self.syslog = syslog
+
+    def __call__(self, typ, value, tb):
+        if typ is bdb.BdbQuit:
+            sys.exit(1)
+
+        #pylint: disable-msg=E1101
+        sys.excepthook = sys.__excepthook__
+        if typ == KeyboardInterrupt and not self.debugCtrlC:
+            sys.exit(1)
+
+        out = StringIO()
+        formatTrace(typ, value, tb, stream = out, withLocals = False)
+        out.write("\nFull stack:\n")
+        formatTrace(typ, value, tb, stream = out, withLocals = True)
+        out.seek(0)
+        tbString = out.read()
+        del out
+
+        if self.syslog is not None:
+            self.syslog("command failed\n%s", tbString)
+
+        if self.debug:
+            formatTrace(typ, value, tb, stream = sys.stderr,
+                        withLocals = False)
+            if sys.stdout.isatty() and sys.stdin.isatty():
+                post_mortem(tb, typ, value)
+            else:
+                sys.exit(1)
+        elif log.getVerbosity() is logging.DEBUG:
+            log.debug(tbString)
+        else:
+            sys.argv[0] = os.path.normpath(sys.argv[0])
+            while tb.tb_next: tb = tb.tb_next
+            lineno = tb.tb_frame.f_lineno
+            filename = tb.tb_frame.f_code.co_filename
+            tmpfd, stackfile = tempfile.mkstemp('.txt', self.prefix)
+            os.write(tmpfd, tbString)
+            os.close(tmpfd)
+
+            sys.stderr.write(self.error % dict(command=' '.join(sys.argv),
+                filename=filename, lineno=lineno, errtype=typ.__name__,
+                errmsg=value, stackfile=stackfile))
+
+
 def beingTraced():
     frame = sys._getframe(0)
     while frame:
@@ -1062,4 +1151,3 @@ def main(argv):
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
-

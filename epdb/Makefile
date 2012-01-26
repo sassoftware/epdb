@@ -20,8 +20,7 @@ python_files = __init__.py	\
                epdb_server.py  \
                epdb_client.py  \
                epdb_stackutil.py \
-               formattrace.py \
-               epdb_excepthook.py
+               formattrace.py
 
 dist_files = $(extra_files) $(python_files)
 
