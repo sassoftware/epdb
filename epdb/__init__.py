@@ -32,6 +32,13 @@ try:
 except ImportError:
     hasTelnet = False
 
+try:
+    import erlcompleter
+    import readline
+except ImportError:
+    readline = None
+    erlcompleter = None
+
 from pdb import _saferepr
 
 from formattrace import formatTrace
@@ -60,16 +67,8 @@ class Epdb(pdb.Pdb):
         self._tb = None
         self._config = {}
         pdb.Pdb.__init__(self)
-        try:
-            import erlcompleter
-            import readline
-        except ImportError:
-            self._readline = None
-            self._completer = None
-        else:
-            self._readline = readline
-            self._completer = erlcompleter.ECompleter()
-
+        self._readline = readline
+        self._completer = erlcompleter and erlcompleter.ECompleter() or None
         self._oldHistory = []
         self.prompt = '(Epdb) '
 
