@@ -226,12 +226,12 @@ class InvertedTelnetServer(TelnetServer):
             self.oldTermios = termios.tcgetattr(sys.stdin.fileno())
         else:
             self.oldTermios = None
-        self.oldStderr = os.dup(sys.stderr.fileno())
-        self.oldStdout = os.dup(sys.stdout.fileno())
-        self.oldStdin = os.dup(sys.stdin.fileno())
-        os.dup2(slaveFd, 0)
-        os.dup2(slaveFd, 1)
-        os.dup2(slaveFd, 2)
+        self.oldStderr = SavedFile(2, sys, 'stderr')
+        self.oldStdout = SavedFile(1, sys, 'stdout')
+        self.oldStdin  = SavedFile(0, sys, 'stdin')
+        self.oldStderr.save(slaveFd)
+        self.oldStdout.save(slaveFd)
+        self.oldStdin.save(slaveFd)
         os.close(slaveFd)
         self.closed = False
 
@@ -240,14 +240,12 @@ class InvertedTelnetServer(TelnetServer):
             pass
         self.closed = True
         # restore old terminal settings before quitting
-        os.dup2(self.oldStdin, 0)
-        os.dup2(self.oldStdout, 1)
-        os.dup2(self.oldStderr, 2)
+        self.oldStderr.restore()
+        self.oldStdout.restore()
+        self.oldStdin.restore()
+        self.oldStderr = self.oldStdout = self.oldStdin = None
         if self.oldTermios is not None:
             termios.tcsetattr(0, termios.TCSADRAIN, self.oldTermios)
-        os.close(self.oldStdin)
-        os.close(self.oldStdout)
-        os.close(self.oldStderr)
         os.waitpid(self.serverPid, 0)
 
 class SocketConnected(Exception):
@@ -260,6 +258,48 @@ class SocketConnected(Exception):
     def __init__(self, slaveFd, serverPid):
         self.slaveFd = slaveFd
         self.serverPid = serverPid
+
+
+class SavedFile(object):
+
+    def __init__(self, fileno, module, attribute):
+        self.fileno = fileno
+        self.module = module
+        self.attribute = attribute
+        self.fileno_saved = None
+        self.fileobj_saved = None
+        self.fileobj_new = None
+
+    def save(self, newFileno):
+        # Save the file object in any case, it may not even have a real
+        # underlying descriptor.
+        self.fileobj_saved = getattr(self.module, self.attribute)
+        # Duplicate the descriptor if possible.
+        try:
+            self.fileno_saved = os.dup(self.fileno)
+        except OSError:
+            self.fileno_saved = None
+        # Duplicate the new PTY into place and open it as a new object.
+        os.dup2(newFileno, self.fileno)
+        self.fileobj_new = os.fdopen(self.fileno, 'w+')
+        setattr(self.module, self.attribute, self.fileobj_new)
+
+    def restore(self):
+        # First destroy the duplicated PTY object and descriptor
+        self.fileobj_new.close()
+        self.fileobj_new = None
+        # Now restore the original file object
+        setattr(self.module, self.attribute, self.fileobj_saved)
+        self.fileobj_saved = None
+        # And if the descriptor was successfully duplicated earlier, restore
+        # it.
+        if self.fileno_saved is not None:
+            os.dup2(self.fileno_saved, self.fileno)
+            try:
+                os.close(self.fileno_saved)
+            except OSError:
+                pass
+            self.fileno_saved = None
 
 
 if __name__ == '__main__':

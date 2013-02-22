@@ -121,6 +121,8 @@ class Epdb(pdb.Pdb):
                 Epdb._server = epdb_server.InvertedTelnetServer(('', port))
                 Epdb._server.handle_request()
                 Epdb._port = port
+                # TelnetServer changes sys.stdout so copy it back here again.
+                self.stdout = sys.stdout
             self.set_trace(skip=2)
 
         def serve_post_mortem(self, t, exc_type=None, exc_msg=None, port=8080):
@@ -128,6 +130,7 @@ class Epdb(pdb.Pdb):
                 print 'Serving on port %s' % port
                 Epdb._server = epdb_server.InvertedTelnetServer(('', port))
                 Epdb._server.handle_request()
+                self.stdout = sys.stdout
             self.post_mortem(t, exc_type, exc_msg)
 
         def do_detach(self, arg):
