@@ -83,12 +83,12 @@ class TelnetClient(telnetlib.Telnet):
         try:
             self.updateTerminalSize()
             writeBuffer = []
-            while 1:
+            while not self.eof:
                 readyWriters = []
                 readyReaders = []
                 neededReaders = [self, sys.stdin]
                 neededWriters = []
-                while 1:
+                while not self.eof:
                     try:
                         rfd, wfd, xfd = select.select(neededReaders,
                                                       neededWriters, [])
