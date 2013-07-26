@@ -46,6 +46,9 @@ setup(name = "epdb",
       entry_points = {
             'nose.plugins.0.10': [
                 'epdb-debug = epdb.epdb_nose:Epdb'
-            ]
-        }
+                ],
+            'console_scripts': [
+                'epdb = epdb.epdb_client:main',
+                ]
+            },
       )

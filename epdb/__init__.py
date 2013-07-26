@@ -56,6 +56,8 @@ from formattrace import formatTrace
 
 log = logging.getLogger('epdb')
 
+SERVE_PORT = 8080
+
 class Epdb(pdb.Pdb):
     _historyPath = os.path.expanduser('~/.epdbhistory')
     multiline_prompt = '| '
@@ -126,7 +128,7 @@ class Epdb(pdb.Pdb):
     if hasTelnet:
         # telnet server support.
         # if enabled, you can serve a epdb session.
-        def serve(self, port=8080):
+        def serve(self, port=SERVE_PORT):
             if not Epdb._server:
                 print 'Serving on port %s' % port
                 Epdb._server = epdb_server.InvertedTelnetServer(('', port))
@@ -136,7 +138,7 @@ class Epdb(pdb.Pdb):
                 self.stdout = sys.stdout
             self.set_trace(skip=2)
 
-        def serve_post_mortem(self, t, exc_type=None, exc_msg=None, port=8080):
+        def serve_post_mortem(self, t, exc_type=None, exc_msg=None, port=SERVE_PORT):
             if not Epdb._server:
                 print 'Serving on port %s' % port
                 Epdb._server = epdb_server.InvertedTelnetServer(('', port))
@@ -1057,13 +1059,13 @@ def set_trace(marker='default'):
 st = set_trace
 
 if hasTelnet:
-    def serve(port=8080):
+    def serve(port=SERVE_PORT):
         Epdb().serve(port)
     
-    def serve_post_mortem(t, exc_type=None, exc_msg=None, port=8080):
+    def serve_post_mortem(t, exc_type=None, exc_msg=None, port=SERVE_PORT):
         Epdb().serve_post_mortem(t, exc_type, exc_msg, port)
 
-    def connect(host='localhost', port=8080):
+    def connect(host='localhost', port=SERVE_PORT):
         t = epdb_client.TelnetClient(host, port)
         t.interact()
 
@@ -1141,26 +1143,3 @@ def _removeQuoteSet(line, quote1, quote2):
             return None
         secondPoint += firstPoint
         line = line[:firstPoint] + line[(secondPoint+2*ln):]
-
-def main(argv):
-    if len(argv) == 1:
-        set_trace()
-        return
-    command = argv[1]
-    if command == 'connect':
-        if len(argv) > 2:
-            host = argv[2]
-        else:
-            host = 'localhost'
-        if len(argv) > 3:
-            port = int(argv[3])
-        else:
-            port = 8080
-        connect(host=host, port=port)
-    else:
-        print "usage: connect [host] [port]"
-        return 1
-    return 0
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))

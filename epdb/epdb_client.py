@@ -28,9 +28,13 @@ import os
 import select
 import signal
 import struct
+import socket
 import sys
 import telnetlib
 import termios
+import time
+
+import epdb
 
 from telnetlib import IAC, IP, SB, SE, NAWS
 
@@ -138,6 +142,39 @@ class TelnetClient(telnetlib.Telnet):
         finally:
             self.restore_terminal()
 
+
+def main():
+    args = sys.argv[1:]
+    if len(args) > 2:
+        sys.exit("usage: %s [port [host]]" % sys.argv[0])
+
+    if len(args) >= 2:
+        host = args[1]
+    else:
+        host = 'localhost'
+
+    if len(args) >= 1:
+        port = int(args[0])
+    else:
+        port = epdb.SERVE_PORT
+
+    print >> sys.stderr, "Waiting for a socket to appear at %s:%d" % (host, port)
+    while True:
+        try:
+            epdb.connect(host, port)
+        except socket.error, e_value:
+            if e_value.args[0] == errno.ECONNREFUSED:
+                time.sleep(1)
+            else:
+                raise
+        except KeyboardInterrupt:
+            print
+            break
+        else:
+            break
+
+    return 0
+
+
 if __name__ == '__main__':
-    t = TelnetClient('localhost', 8000)
-    t.interact()
+    main()

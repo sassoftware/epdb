@@ -1,4 +1,6 @@
 Changes in 0.14:
+    * Added a 'epdb' client script that waits for a server to appear on
+      a specified port
     * Added backtrace formatter and exception hook
     * Added contributor agreement
     * client: fix crash when detaching
