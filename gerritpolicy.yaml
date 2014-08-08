@@ -1,0 +1,19 @@
+# Gerrit policy config file
+---
+GLOBAL:
+   processing:
+      auto-submit : on
+   checks:
+      Attrib: off
+      Code-Review : on
+      Verified : off
+      Encoding: off
+      EOL : on
+      Issue-Tracking : on
+      Template-ERB-Review: off
+   validator-opts:
+      Encoding:
+         gitattribute-check-level: 1
+      Issue-Tracking:
+         Fixid : off
+         Jira : on
