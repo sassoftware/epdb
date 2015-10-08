@@ -85,7 +85,10 @@ class Epdb(Plugin):
         ec, ev, tb = err
         stdout = sys.stdout
         sys.stdout = sys.__stdout__
-        traceback.print_exc()
+        try:
+            traceback.print_exc()
+        except Exception:
+            print(*sys.exc_info())
         try:
             epdb.post_mortem(tb)
         finally:
