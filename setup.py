@@ -26,7 +26,11 @@ try:
 except ImportError:
     from distutils.core import setup
 
-Version = "0.14"
+Version = "0.15"
+
+install_requires = ["future",
+                    "six",
+                    ]
 
 setup(name = "epdb",
       version = Version,
@@ -42,6 +46,8 @@ setup(name = "epdb",
                       'Intended Audience :: Developers',
                       'License :: OSI Approved :: MIT License',
                       'Topic :: Software Development :: Debuggers',
+                      'Programming Language :: Python :: 2',
+                      'Programming Language :: Python :: 3',
                       ],
       entry_points = {
             'nose.plugins.0.10': [
@@ -51,4 +57,5 @@ setup(name = "epdb",
                 'epdb = epdb.epdb_client:main',
                 ]
             },
+      install_requires = install_requires,
       )

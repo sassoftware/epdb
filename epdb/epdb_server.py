@@ -33,7 +33,18 @@ This server does _NOT_ do LINEMODE, instead it is character based.  This means
 to talk to this server using the standard telnet client, you'll need to first
 type "CTRL-] mode char\n"
 """
-from SocketServer import TCPServer, BaseRequestHandler
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+
+from future import standard_library
+standard_library.install_aliases()
+
+from builtins import chr
+from builtins import object
+
+from socketserver import TCPServer, BaseRequestHandler
 import fcntl
 import os
 import pty
@@ -219,10 +230,10 @@ class InvertedTelnetServer(TelnetServer):
                 # for future serves.
                 self.socket.close()
                 self.process_request(request, client_address)
-            except SocketConnected, err:
+            except SocketConnected as err:
                 self._serve_process(err.slaveFd, err.serverPid)
                 return
-            except Exception, err:
+            except Exception as err:
                 self.handle_error(request, client_address)
                 self.close_request()
 
@@ -314,6 +325,6 @@ class SavedFile(object):
 
 
 if __name__ == '__main__':
-    print 'serving on 8081....'
+    print('serving on 8081....')
     t = TelnetServer(('', 8081))
     t.serve_forever()

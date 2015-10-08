@@ -26,10 +26,19 @@ This plugin provides ``--epdb`` and ``--epdb-failures`` options. The ``--epdb``
 option will drop the test runner into epdb when it encounters an error. To
 drop into epdb on failure, use ``--epdb-failures``.
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
+from future import standard_library
+standard_library.install_aliases()
 
 import epdb
 import sys
+
 from nose.plugins.base import Plugin
+
 import traceback
 
 class Epdb(Plugin):

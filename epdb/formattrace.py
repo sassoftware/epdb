@@ -24,6 +24,15 @@
 """
 Methods for formatting "extended" tracebacks with locals.
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
+from future import standard_library
+standard_library.install_aliases()
+
+from builtins import str
 
 import os
 import sys
@@ -31,25 +40,45 @@ import types
 import inspect
 import itertools
 import linecache
-import xmlrpclib
-from repr import Repr
+import xmlrpc.client
+from reprlib import Repr
 
-# Types for which calling __safe_str__ has side effects
-UNSAFE_TYPES = (
-    xmlrpclib.ServerProxy,
-    xmlrpclib._Method,
-  )
+if (sys.version_info > (3, 0)):
+    # Python 3 code in this block
+
+    # Types for which calling __safe_str__ has side effects
+    UNSAFE_TYPES = (
+        xmlrpc.client.ServerProxy,
+        xmlrpc.client._Method,
+      )
+
+    # Types that should not appear in the output at all
+    IGNORED_TYPES = (
+        types.FunctionType,
+        types.ModuleType,
+      )
+else:
+    # Python 2 code in this block
+
+    # Types for which calling __safe_str__ has side effects
+    UNSAFE_TYPES = (
+        xmlrpc.client.ServerProxy,
+        xmlrpc.client.MethodType,
+      )
+
+    # Types that should not appear in the output at all
+    IGNORED_TYPES = (
+        types.ClassType,
+        types.FunctionType,
+        types.ModuleType,
+        types.TypeType,
+        )
+
+
 
 # Set for consumers to hook into for black listing their own classes.
 UNSAFE_TYPE_NAMES = set()
 
-# Types that should not appear in the output at all
-IGNORED_TYPES = (
-    types.ClassType,
-    types.FunctionType,
-    types.ModuleType,
-    types.TypeType,
-  )
 
 
 class TraceRepr(Repr):
@@ -183,7 +212,7 @@ def formatLocals(frame, stream):
                 vstr = obj.__safe_str__()
             else:
                 vstr = prettyRepr(obj)
-        except Exception, error:
+        except Exception as error:
             # Failed to get a representation, but at least display what
             # type it was and what exception was raised.
             if isinstance(obj, types.InstanceType):

@@ -20,7 +20,6 @@
 # THE SOFTWARE.
 #
 
-
 from unittest import TestCase
 
 class NosePluginTest(TestCase):

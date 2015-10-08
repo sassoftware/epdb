@@ -22,6 +22,16 @@
 #
 
 
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+
+from future import standard_library
+standard_library.install_aliases()
+
+from builtins import int
+
 import errno
 import fcntl
 import os
@@ -107,7 +117,7 @@ class TelnetClient(telnetlib.Telnet):
                     try:
                         rfd, wfd, xfd = select.select(neededReaders,
                                                       neededWriters, [])
-                    except select.error, err:
+                    except select.error as err:
                         if err.args[0] != errno.EINTR: # ignore interrupted select
                             raise
                     readyReaders.extend(rfd)
@@ -129,7 +139,7 @@ class TelnetClient(telnetlib.Telnet):
                     try:
                         text = self.read_eager()
                     except EOFError:
-                        print '*** Connection closed by remote host ***'
+                        print('*** Connection closed by remote host ***')
                         break
                     if text:
                         sys.stdout.write(text)
@@ -158,17 +168,17 @@ def main():
     else:
         port = epdb.SERVE_PORT
 
-    print >> sys.stderr, "Waiting for a socket to appear at %s:%d" % (host, port)
+    print("Waiting for a socket to appear at %s:%d" % (host, port), file=sys.stderr)
     while True:
         try:
             epdb.connect(host, port)
-        except socket.error, e_value:
+        except socket.error as e_value:
             if e_value.args[0] == errno.ECONNREFUSED:
                 time.sleep(1)
             else:
                 raise
         except KeyboardInterrupt:
-            print
+            print()
             break
         else:
             break
