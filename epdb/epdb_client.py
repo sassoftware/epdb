@@ -82,7 +82,7 @@ class TelnetClient(telnetlib.Telnet):
 
     def ctrl_c(self, int, tb):
         self.sock.sendall(IAC + IP)
-        self.sock.sendall('close\n')
+        self.sock.sendall(b'close\n')
         raise KeyboardInterrupt
 
     def sigwinch(self, int, tb):
@@ -91,17 +91,17 @@ class TelnetClient(telnetlib.Telnet):
     def updateTerminalSize(self):
         rows, cols = getTerminalSize()
         out = struct.pack('>HH', cols, rows)
-        out.replace('\xFF', '\xFF\xFF')  # escape IAC
+        out.replace(b'\xFF', b'\xFF\xFF')  # escape IAC
         self.sock.sendall(IAC + SB + NAWS + out + IAC + SE)
 
     def write(self, buffer):
         if TERMKEY in buffer:
             buffer = buffer[:buffer.find(TERMKEY)]
             if buffer:
-                telnetlib.Telnet.write(self, buffer)
+                telnetlib.Telnet.write(self, bytes(buffer, 'utf-8'))
             self.close()
         else:
-            telnetlib.Telnet.write(self, buffer)
+            telnetlib.Telnet.write(self, bytes(buffer, 'utf-8'))
 
     def interact(self):
         self.set_raw_mode()
@@ -142,7 +142,7 @@ class TelnetClient(telnetlib.Telnet):
                         print('*** Connection closed by remote host ***')
                         break
                     if text:
-                        sys.stdout.write(text)
+                        sys.stdout.write(text.decode())
                         sys.stdout.flush()
                 if sys.stdin in readyReaders and self in readyWriters:
                     line = sys.stdin.read(4096)
