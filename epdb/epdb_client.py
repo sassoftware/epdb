@@ -48,12 +48,12 @@ import epdb
 
 from telnetlib import IAC, IP, SB, SE, NAWS
 
-TERMKEY = '\x1d' # equals ^]
+TERMKEY = b'\x1d' # equals ^]
 
 def getTerminalSize():
-    s = struct.pack('HHHH', 0, 0, 0, 0)
+    s = struct.pack(b'HHHH', 0, 0, 0, 0)
     result = fcntl.ioctl(sys.stdin.fileno(), termios.TIOCGWINSZ, s)
-    rows, cols = struct.unpack('HHHH', result)[0:2]
+    rows, cols = struct.unpack(b'HHHH', result)[0:2]
     return rows, cols
 
 class TelnetClient(telnetlib.Telnet):
@@ -90,15 +90,17 @@ class TelnetClient(telnetlib.Telnet):
 
     def updateTerminalSize(self):
         rows, cols = getTerminalSize()
-        out = struct.pack('>HH', cols, rows)
-        out.replace('\xFF', '\xFF\xFF')  # escape IAC
+        out = struct.pack(b'>HH', cols, rows)
+        if IAC in out:
+            out.replace(IAC, IAC+IAC)  # escape IAC
         self.sock.sendall(IAC + SB + NAWS + out + IAC + SE)
 
     def write(self, buffer):
-        if TERMKEY in buffer:
-            buffer = buffer[:buffer.find(TERMKEY)]
-            if buffer:
-                telnetlib.Telnet.write(self, buffer)
+        head, sep, tail = buffer.partition(TERMKEY)
+        if sep == TERMKEY:
+            # We need to terminate the connection
+            if head:
+                telnetlib.Telnet.write(self, head)
             self.close()
         else:
             telnetlib.Telnet.write(self, buffer)
@@ -142,13 +144,13 @@ class TelnetClient(telnetlib.Telnet):
                         print('*** Connection closed by remote host ***')
                         break
                     if text:
-                        sys.stdout.write(text)
+                        sys.stdout.write(text.decode('ascii'))
                         sys.stdout.flush()
                 if sys.stdin in readyReaders and self in readyWriters:
                     line = sys.stdin.read(4096)
                     if not line:
                         break
-                    self.write(line)
+                    self.write(line.encode('ascii'))
         finally:
             self.restore_terminal()
 

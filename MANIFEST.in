@@ -1,1 +1,1 @@
-include LICENSE NEWS ContributorAgreement.txt
+include LICENSE NEWS *.txt
