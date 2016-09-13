@@ -16,4 +16,4 @@ GLOBAL:
          gitattribute-check-level: 1
       Issue-Tracking:
          Fixid : off
-         Jira : on
+         Jira : off
