@@ -38,24 +38,22 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
-from future import standard_library
-standard_library.install_aliases()
-
-from builtins import chr
-from builtins import object
-
 from socketserver import TCPServer, BaseRequestHandler
 import fcntl
 import os
 import pty
 import select
 import signal
+import six
 import socket
 import struct
 import sys
 import telnetlib
 import termios
 from telnetlib import IAC, IP, SB, SE, DO, DONT, WILL, TM, NAWS
+
+IPRESP = b'\x03'  # chr(ord('C') & 0x1F)
+
 
 class TelnetServerProtocolHandler(telnetlib.Telnet):
     """
@@ -85,14 +83,14 @@ class TelnetServerProtocolHandler(telnetlib.Telnet):
                 pass
         elif cmd == IP:
             # interrupt process
-            os.write(self.local, chr(ord('C') & 0x1F))
+            os.write(self.local, IPRESP)
         elif cmd == SB:
             pass
         elif cmd == SE:
             option = self.sbdataq[0]
-            if option == NAWS: # negotiate window size.
-                cols = ord(self.sbdataq[1])
-                rows = ord(self.sbdataq[2])
+            if option == NAWS[0]: # negotiate window size.
+                cols = six.indexbytes(self.sbdataq, 1)
+                rows = six.indexbytes(self.sbdataq, 2)
                 s = struct.pack('HHHH', rows, cols, 0, 0)
                 fcntl.ioctl(self.local, termios.TIOCSWINSZ, s)
         elif cmd == DONT:
