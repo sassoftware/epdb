@@ -23,11 +23,12 @@
 from __future__ import unicode_literals
 from unittest import TestCase
 import mock
+import os
 
 from epdb import epdb_server
 
 
-class TelnetServerTest(TestCase):
+class TelnetServerProtocolHandlerTest(TestCase):
     def _new_server_protocol_handler(self):
         """
         Convenience function for setting up a TelnetServerProtocolHandler
@@ -80,3 +81,55 @@ class TelnetServerTest(TestCase):
         for cmd in [epdb_server.SB, epdb_server.DONT, object()]:
             phand.process_IAC(sock, cmd, None)
             _write.assert_not_called()
+
+class InvertedTelnetServerTest(TestCase):
+    def _new_server(self):
+        """
+        Convenience function for setting up an InvertedTelnetServer object
+        """
+        server_address = mock.MagicMock()
+        return epdb_server.InvertedTelnetServer(server_address)
+
+    @mock.patch("epdb.epdb_server.os.waitpid")
+    @mock.patch("epdb.epdb_server.InvertedTelnetServer.server_bind")
+    def test__serve_process__redir_stdin_stdout_stderr(
+            self, _server_bind, _waitpid):
+        # fdopen in python 3.x is more strict - it won't let you open a pty fd
+        # in read/write mode, because it's not seekable.
+        # We need to make sure the redirected stdin is r and the redirected
+        # stdout/stderr are w
+        srv = self._new_server()
+        master_fd, slave_fd = os.openpty()
+        os.close(slave_fd)
+
+        try:
+            srv._serve_process(master_fd, 1234)
+
+            self.assertEquals(1234, srv.serverPid)
+
+            self.assertEquals(
+                "stdout", srv.oldStdout.attribute)
+            self.assertEquals(
+                "w", srv.oldStdout.fileobj_new.mode)
+
+            self.assertEquals(
+                "stderr", srv.oldStderr.attribute)
+            self.assertEquals(
+                "w", srv.oldStderr.fileobj_new.mode)
+
+            self.assertEquals(
+                "stdin", srv.oldStdin.attribute)
+            self.assertEquals(
+                "r", srv.oldStdin.fileobj_new.mode)
+
+            _waitpid.assert_not_called()
+            old_stdin = srv.oldStdin
+            old_stdout = srv.oldStdout
+            old_stderr = srv.oldStderr
+        finally:
+            srv.close_request()
+            _waitpid.assert_called_once_with(1234, 0)
+
+        self.assertEquals(None, old_stdin.fileobj_new)
+        self.assertEquals(None, old_stdout.fileobj_new)
+        self.assertEquals(None, old_stderr.fileobj_new)

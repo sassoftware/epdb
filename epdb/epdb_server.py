@@ -249,9 +249,9 @@ class InvertedTelnetServer(TelnetServer):
         self.oldStderr = SavedFile(2, sys, 'stderr')
         self.oldStdout = SavedFile(1, sys, 'stdout')
         self.oldStdin  = SavedFile(0, sys, 'stdin')
-        self.oldStderr.save(slaveFd)
-        self.oldStdout.save(slaveFd)
-        self.oldStdin.save(slaveFd)
+        self.oldStderr.save(slaveFd, mode="w")
+        self.oldStdout.save(slaveFd, mode="w")
+        self.oldStdin.save(slaveFd, mode="r")
         os.close(slaveFd)
         self.closed = False
 
@@ -290,7 +290,7 @@ class SavedFile(object):
         self.fileobj_saved = None
         self.fileobj_new = None
 
-    def save(self, newFileno):
+    def save(self, newFileno, mode="r"):
         # Save the file object in any case, it may not even have a real
         # underlying descriptor.
         self.fileobj_saved = getattr(self.module, self.attribute)
@@ -301,7 +301,7 @@ class SavedFile(object):
             self.fileno_saved = None
         # Duplicate the new PTY into place and open it as a new object.
         os.dup2(newFileno, self.fileno)
-        self.fileobj_new = os.fdopen(self.fileno, 'w+')
+        self.fileobj_new = os.fdopen(self.fileno, mode)
         setattr(self.module, self.attribute, self.fileobj_new)
 
     def restore(self):
