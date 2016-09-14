@@ -149,7 +149,7 @@ class TraceRepr(Repr):
 
 
 def shouldSafeStr(obj):
-    if isinstance(obj, types.InstanceType):
+    if hasattr(types, 'InstanceType') and isinstance(obj, types.InstanceType):
         # Old-style instances
         cls = obj.__class__
     else:
@@ -215,7 +215,8 @@ def formatLocals(frame, stream):
         except Exception as error:
             # Failed to get a representation, but at least display what
             # type it was and what exception was raised.
-            if isinstance(obj, types.InstanceType):
+            if hasattr(types, 'InstanceType') \
+                    and isinstance(obj, types.InstanceType):
                 typeName = obj.__class__.__name__
             else:
                 typeName = type(obj).__name__
