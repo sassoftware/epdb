@@ -27,20 +27,15 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-from future import standard_library
-standard_library.install_aliases()
-
-from builtins import open
-
 import inspect
 import smtplib
 import sys
 import string
 import tempfile
 import traceback
-import xmlrpc.client
+from six.moves import xmlrpc_client
 
-from reprlib import Repr
+from six.moves.reprlib import Repr
 _repr = Repr()
 _repr.maxstring = 3000
 _saferepr = _repr.repr
@@ -147,7 +142,7 @@ def _printFrame(f, output=sys.stderr):
 
 def _getStringValue(val):
     try:
-        if isinstance(val, xmlrpc.client.ServerProxy):
+        if isinstance(val, xmlrpc_client.ServerProxy):
             rval = "<Server Proxy>"
         elif hasattr(val, 'asString'):
             rval = val.asString()

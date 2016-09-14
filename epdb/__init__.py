@@ -27,17 +27,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
 
-from future import standard_library
-standard_library.install_aliases()
-
-from builtins import open
-from builtins import dict
-from builtins import int
-from builtins import input
-from builtins import str
-from builtins import range
-from builtins import object
-
 import inspect
 import pdb
 import os

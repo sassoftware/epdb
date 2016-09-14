@@ -29,27 +29,22 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-from future import standard_library
-standard_library.install_aliases()
-
-from builtins import str
-
 import os
 import sys
 import types
 import inspect
 import itertools
 import linecache
-import xmlrpc.client
-from reprlib import Repr
+from six.moves import xmlrpc_client
+from six.moves.reprlib import Repr
 
 if (sys.version_info > (3, 0)):
     # Python 3 code in this block
 
     # Types for which calling __safe_str__ has side effects
     UNSAFE_TYPES = (
-        xmlrpc.client.ServerProxy,
-        xmlrpc.client._Method,
+        xmlrpc_client.ServerProxy,
+        xmlrpc_client._Method,
       )
 
     # Types that should not appear in the output at all
@@ -62,8 +57,8 @@ else:
 
     # Types for which calling __safe_str__ has side effects
     UNSAFE_TYPES = (
-        xmlrpc.client.ServerProxy,
-        xmlrpc.client.MethodType,
+        xmlrpc_client.ServerProxy,
+        xmlrpc_client.MethodType,
       )
 
     # Types that should not appear in the output at all

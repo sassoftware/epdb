@@ -28,8 +28,7 @@ except ImportError:
 
 Version = "0.15"
 
-install_requires = ["future",
-                    "six",
+install_requires = ["six",
                     ]
 
 setup(name = "epdb",
