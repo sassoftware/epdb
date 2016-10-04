@@ -6,7 +6,7 @@ GLOBAL:
    checks:
       Attrib: off
       Code-Review: on
-      Verified: off
+      Verified: on
       Encoding: off
       EOL: on
       Issue-Tracking: off
