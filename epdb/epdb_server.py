@@ -26,7 +26,7 @@
 Telnet Server implementation.
 
 Based on telnetlib telnet client - reads in and parses telnet protocol
-from the socket, understands window change requests and interrupt requests. 
+from the socket, understands window change requests and interrupt requests.
 (IP and NAWS).
 
 This server does _NOT_ do LINEMODE, instead it is character based.  This means
@@ -74,10 +74,11 @@ class TelnetServerProtocolHandler(telnetlib.Telnet):
             Read in and parse IAC commands as passed by telnetlib.
 
             SB/SE commands are stored in sbdataq, and passed in w/ a command
-            of SE.  
+            of SE.
         """
         if cmd == DO:
-            if option == TM: # timing mark - send WILL into outgoing stream
+            if option == TM:
+                # timing mark - send WILL into outgoing stream
                 os.write(self.remote, IAC + WILL + TM)
             else:
                 pass
@@ -88,7 +89,8 @@ class TelnetServerProtocolHandler(telnetlib.Telnet):
             pass
         elif cmd == SE:
             option = self.sbdataq[0]
-            if option == NAWS[0]: # negotiate window size.
+            if option == NAWS[0]:
+                # negotiate window size.
                 cols = six.indexbytes(self.sbdataq, 1)
                 rows = six.indexbytes(self.sbdataq, 2)
                 s = struct.pack('HHHH', rows, cols, 0, 0)
@@ -114,6 +116,7 @@ class TelnetServerProtocolHandler(telnetlib.Telnet):
                 os.write(self.local, buf)
                 continue
 
+
 class TelnetRequestHandler(BaseRequestHandler):
     """
         Request handler that serves up a shell for users who connect.
@@ -129,7 +132,7 @@ class TelnetRequestHandler(BaseRequestHandler):
     def handle(self):
         """
             Creates a child process that is fully controlled by this
-            request handler, and serves data to and from it via the 
+            request handler, and serves data to and from it via the
             protocol handler.
         """
         pid, fd = pty.fork()
@@ -153,21 +156,23 @@ class TelnetServer(TCPServer):
 
     allow_reuse_address = True
 
-    def __init__(self, server_address=None, 
+    def __init__(self, server_address=None,
                  requestHandlerClass=TelnetRequestHandler):
         if not server_address:
             server_address = ('', 23)
         TCPServer.__init__(self, server_address, requestHandlerClass)
 
+
 class TelnetServerForCommand(TelnetServer):
-    def __init__(self, server_address=None, 
-                 requestHandlerClass=TelnetRequestHandler, 
+    def __init__(self, server_address=None,
+                 requestHandlerClass=TelnetRequestHandler,
                  command=['/bin/sh']):
         class RequestHandler(requestHandlerClass):
             pass
         RequestHandler.command = command[0]
         RequestHandler.args = command
         TelnetServer.__init__(self, server_address, RequestHandler)
+
 
 class InvertedTelnetRequestHandler(TelnetRequestHandler):
     def handle(self):
@@ -196,6 +201,7 @@ class InvertedTelnetRequestHandler(TelnetRequestHandler):
             finally:
                 os.close(masterFd)
                 os._exit(1)
+
 
 class InvertedTelnetServer(TelnetServer):
     """
@@ -248,7 +254,7 @@ class InvertedTelnetServer(TelnetServer):
             self.oldTermios = None
         self.oldStderr = SavedFile(2, sys, 'stderr')
         self.oldStdout = SavedFile(1, sys, 'stdout')
-        self.oldStdin  = SavedFile(0, sys, 'stdin')
+        self.oldStdin = SavedFile(0, sys, 'stdin')
         self.oldStderr.save(slaveFd, mode="w")
         self.oldStdout.save(slaveFd, mode="w")
         self.oldStdin.save(slaveFd, mode="r")
@@ -268,9 +274,10 @@ class InvertedTelnetServer(TelnetServer):
             termios.tcsetattr(0, termios.TCSADRAIN, self.oldTermios)
         os.waitpid(self.serverPid, 0)
 
+
 class SocketConnected(Exception):
     """
-        Control-Flow Exception raised when we have successfully connected 
+        Control-Flow Exception raised when we have successfully connected
         a socket.
 
         Used for IntertedTelnetServer

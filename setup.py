@@ -31,24 +31,24 @@ Version = "0.15"
 install_requires = ["six",
                     ]
 
-setup(name = "epdb",
-      version = Version,
-      description = "Enhanced Python Debugger",
-      long_description="Adds functionality to the python debugger, including support for remote debugging",
-      author = "SAS Institute, Inc.",
-      author_email = "elliot.peele@sas.com",
-      url = "https://github.com/sassoftware/epdb",
-      packages = [ 'epdb' ],
-      license = 'MIT',
-      platforms = 'Posix; MacOS X; Windows',
-      classifiers = [ 'Operating System :: OS Independent',
-                      'Intended Audience :: Developers',
-                      'License :: OSI Approved :: MIT License',
-                      'Topic :: Software Development :: Debuggers',
-                      'Programming Language :: Python :: 2',
-                      'Programming Language :: Python :: 3',
-                      ],
-      entry_points = {
+setup(name="epdb",
+      version=Version,
+      description="Enhanced Python Debugger",
+      long_description="Adds functionality to the python debugger, including support for remote debugging",  # noqa
+      author="SAS Institute, Inc.",
+      author_email="elliot.peele@sas.com",
+      url="https://github.com/sassoftware/epdb",
+      packages=['epdb'],
+      license='MIT',
+      platforms='Posix; MacOS X; Windows',
+      classifiers=['Operating System :: OS Independent',
+                   'Intended Audience :: Developers',
+                   'License :: OSI Approved :: MIT License',
+                   'Topic :: Software Development :: Debuggers',
+                   'Programming Language :: Python :: 2',
+                   'Programming Language :: Python :: 3',
+                   ],
+      entry_points={
             'nose.plugins.0.10': [
                 'epdb-debug = epdb.epdb_nose:Epdb'
                 ],
@@ -56,5 +56,5 @@ setup(name = "epdb",
                 'epdb = epdb.epdb_client:main',
                 ]
             },
-      install_requires = install_requires,
+      install_requires=install_requires,
       )

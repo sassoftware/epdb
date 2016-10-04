@@ -38,6 +38,7 @@ from nose.plugins.base import Plugin
 
 import traceback
 
+
 class Epdb(Plugin):
     """
     Provides --epdb and --epdb-failures options that cause the test runner to

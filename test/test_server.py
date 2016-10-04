@@ -82,6 +82,7 @@ class TelnetServerProtocolHandlerTest(TestCase):
             phand.process_IAC(sock, cmd, None)
             _write.assert_not_called()
 
+
 class InvertedTelnetServerTest(TestCase):
     def _new_server(self):
         """

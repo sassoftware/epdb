@@ -40,6 +40,7 @@ _repr = Repr()
 _repr.maxstring = 3000
 _saferepr = _repr.repr
 
+
 def printTraceBack(tb=None, output=sys.stderr, exc_type=None, exc_msg=None):
     if isinstance(output, str):
         output = open(output, 'w')
@@ -56,7 +57,8 @@ def printTraceBack(tb=None, output=sys.stderr, exc_type=None, exc_msg=None):
 
     if exc_type is not None:
         output.write('Exception: ')
-        exc_info = '\n'.join(traceback.format_exception_only(exc_type, exc_msg))
+        exc_info = '\n'.join(traceback.format_exception_only(
+            exc_type, exc_msg))
         output.write(exc_info)
         output.write('\n\n')
 
@@ -66,6 +68,7 @@ def printTraceBack(tb=None, output=sys.stderr, exc_type=None, exc_msg=None):
     while tb:
         _printFrame(tb.tb_frame, output=output)
         tb = tb.tb_next
+
 
 def printFrame(frame=0, output=sys.stderr):
     # if output is a path, assume it is a writable one
@@ -79,6 +82,7 @@ def printFrame(frame=0, output=sys.stderr):
         frame = sys._getframe(frame + 1)
     _printFrame(frame, output)
 
+
 def printStack(frame=0, output=sys.stderr):
     if isinstance(output, str):
         output = open(output, 'w')
@@ -91,9 +95,10 @@ def printStack(frame=0, output=sys.stderr):
         _printFrame(frame, output)
         frame = frame.f_back
 
+
 def mailStack(frame, recips, sender, subject, extracontent=None):
     file = tempfile.TemporaryFile()
-    file.write('Subject: ' +  subject + '\n\n')
+    file.write('Subject: ' + subject + '\n\n')
     if extracontent:
         file.write(extracontent)
     printStack(frame, file)
@@ -105,16 +110,20 @@ def mailStack(frame, recips, sender, subject, extracontent=None):
     server.close()
     file.close()
 
+
 def _printFrame(f, output=sys.stderr):
     c = f.f_code
-    argcount =  c.co_argcount
+    argcount = c.co_argcount
     varnames = c.co_varnames
     args = varnames[:argcount]
     locals = f.f_locals
     globals = f.f_globals
-    output.write(">> %s:%s: %s.%s(%s)\n" % ( c.co_filename, f.f_lineno, globals['__name__'], c.co_name, ', '.join(args) ))
+    output.write(">> %s:%s: %s.%s(%s)\n" % (
+        c.co_filename, f.f_lineno, globals['__name__'], c.co_name,
+        ', '.join(args)))
 
-    localkeys = [ l for l in list(f.f_locals.keys()) if not inspect.ismodule(locals[l] ) ] 
+    localkeys = [l for l in list(f.f_locals.keys())
+                 if not inspect.ismodule(locals[l])]
     if argcount > 0:
         output.write("  Params: \n")
         for var in varnames[:argcount]:
@@ -140,6 +149,7 @@ def _printFrame(f, output=sys.stderr):
                 val = '<Unknown>'
             output.write("    %s = %r\n" % (key, _saferepr(val)))
 
+
 def _getStringValue(val):
     try:
         if isinstance(val, xmlrpc_client.ServerProxy):
@@ -158,6 +168,7 @@ def _getStringValue(val):
         return rval
     except Exception as e:
         try:
-            return '<Exception occured while converting %s to string: %s' %(repr(val), e)
+            return '<Exception occured while converting %s to string: %s' % (
+                repr(val), e)
         except Exception as e:
-            return '<Exception occured while converting to repr: %s' %(e)
+            return '<Exception occured while converting to repr: %s' % (e,)

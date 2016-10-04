@@ -43,13 +43,15 @@ import epdb
 
 from telnetlib import IAC, IP, SB, SE, NAWS
 
-TERMKEY = b'\x1d' # equals ^]
+TERMKEY = b'\x1d'  # equals ^]
+
 
 def getTerminalSize():
     s = struct.pack(b'HHHH', 0, 0, 0, 0)
     result = fcntl.ioctl(sys.stdin.fileno(), termios.TIOCGWINSZ, s)
     rows, cols = struct.unpack(b'HHHH', result)[0:2]
     return rows, cols
+
 
 class TelnetClient(telnetlib.Telnet):
     def __init__(self, *args, **kw):
@@ -104,7 +106,6 @@ class TelnetClient(telnetlib.Telnet):
         self.set_raw_mode()
         try:
             self.updateTerminalSize()
-            writeBuffer = []
             while not self.eof:
                 readyWriters = []
                 readyReaders = []
@@ -115,12 +116,15 @@ class TelnetClient(telnetlib.Telnet):
                         rfd, wfd, xfd = select.select(neededReaders,
                                                       neededWriters, [])
                     except select.error as err:
-                        if err.args[0] != errno.EINTR: # ignore interrupted select
+                        if err.args[0] != errno.EINTR:
+                            # ignore interrupted select
                             raise
                     readyReaders.extend(rfd)
-                    [neededReaders.remove(x) for x in rfd if x in neededReaders]
+                    [neededReaders.remove(x) for x in rfd
+                     if x in neededReaders]
                     readyWriters.extend(wfd)
-                    [neededWriters.remove(x) for x in wfd if x in neededWriters]
+                    [neededWriters.remove(x) for x in wfd
+                     if x in neededWriters]
                     if self in readyReaders:
                         if sys.stdout in readyWriters:
                             break
@@ -165,7 +169,8 @@ def main():
     else:
         port = epdb.SERVE_PORT
 
-    print("Waiting for a socket to appear at %s:%d" % (host, port), file=sys.stderr)
+    print("Waiting for a socket to appear at %s:%d" % (host, port),
+          file=sys.stderr)
     while True:
         try:
             epdb.connect(host, port)

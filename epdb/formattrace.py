@@ -70,14 +70,12 @@ else:
         )
 
 
-
 # Set for consumers to hook into for black listing their own classes.
 UNSAFE_TYPE_NAMES = set()
 
 
-
 class TraceRepr(Repr):
-    def __init__(self, subsequentIndent = ""):
+    def __init__(self, subsequentIndent=""):
         Repr.__init__(self)
         self.maxtuple = 20
         self.maxset = 160
@@ -108,7 +106,7 @@ class TraceRepr(Repr):
             newlevel = level - 1
             repr1 = self.repr1
             pieces = [repr1(elem, newlevel)
-                for elem in itertools.islice(obj, maxiter)]
+                      for elem in itertools.islice(obj, maxiter)]
             if n > maxiter:
                 pieces.append('...len=%d...' % n)
             out = self._pretty_repr(pieces, n, level)
@@ -166,6 +164,7 @@ def shouldSafeStr(obj):
 
 def formatCode(frame, stream):
     _updatecache = linecache.updatecache
+
     def updatecache(*args):
         # linecache.updatecache looks in the module search path for
         # files that match the module name. This is a problem if you
@@ -184,7 +183,7 @@ def formatCode(frame, stream):
         fileName, lineNo, funcName, text, idx = frameInfo
 
         stream.write('  File "%s", line %d, in %s\n' %
-            (fileName, lineNo, funcName))
+                     (fileName, lineNo, funcName))
         if text is not None and len(text) > idx:
             # If the source file is not available, we may not be able to get
             # the line
@@ -194,7 +193,7 @@ def formatCode(frame, stream):
 
 
 def formatLocals(frame, stream):
-    prettyRepr = TraceRepr(subsequentIndent = " " * 27).repr
+    prettyRepr = TraceRepr(subsequentIndent=" " * 27).repr
     for name, obj in sorted(frame.f_locals.items()):
         if name.startswith('__') and name.endswith('__'):
             # Presumably internal data

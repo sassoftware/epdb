@@ -27,6 +27,7 @@ from __future__ import absolute_import
 
 import rlcompleter
 
+
 class ECompleter(rlcompleter.Completer):
 
     def global_matches(self, text):
@@ -37,13 +38,13 @@ class ECompleter(rlcompleter.Completer):
 
         """
 # lines commented out make tab completion match keywords and builtins,
-# which we don't want 
+# which we don't want
 #        import keyword
         matches = []
         n = len(text)
         for list in [
-#                   keyword.kwlist,
-#                     __builtin__.__dict__,
+                     # keyword.kwlist,
+                     # __builtin__.__dict__,
                      self.namespace]:
             for word in list:
                 if word[:n] == text and word != "__builtins__":

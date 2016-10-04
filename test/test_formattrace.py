@@ -30,8 +30,8 @@ class ReprTest(TestCase):
         stringobj2 = stringobj1 + 'i'
         unicodeobj1 = u'0123456789' * 159 + u'abcdefgh'
         unicodeobj2 = unicodeobj1 + u'i'
-        listobj1 = [ 1 ] * 20
-        listobj2 = listobj1 + [ 'a' ]
+        listobj1 = [1] * 20
+        listobj2 = listobj1 + ['a']
         sio = StringIO()
         frame = sys._getframe()
         formattrace.formatLocals(frame, sio)
@@ -39,7 +39,7 @@ class ReprTest(TestCase):
         sio.seek(0)
 
         for line in sio:
-            varName, varVal = [ x.strip() for x in line.split(':', 2) ]
+            varName, varVal = [x.strip() for x in line.split(':', 2)]
             if varName == 'stringobj1':
                 self.assertEqual(varVal, repr(stringobj1))
             elif varName == 'unocodeobj1':
