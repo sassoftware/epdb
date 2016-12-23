@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
 #
 # Copyright (c) SAS Institute, Inc.
 #
@@ -20,21 +22,28 @@
 # THE SOFTWARE.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
+from os.path import dirname
+from os.path import join
+import io
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
 
-Version = "0.15"
 
-install_requires = ["six",
-                    ]
+def read(*names, **kwargs):
+    return io.open(join(dirname(__file__), *names),
+                   encoding=kwargs.get('encoding', 'utf-8')).read()
+
+
+Version = "0.15.1"
+
+install_requires = ["six"]
 
 setup(name="epdb",
       version=Version,
       description="Enhanced Python Debugger",
-      long_description="Adds functionality to the python debugger, including support for remote debugging",  # noqa
+      long_description=read('README.rst'),
       author="SAS Institute, Inc.",
       author_email="elliot.peele@sas.com",
       url="https://github.com/sassoftware/epdb",
@@ -48,6 +57,7 @@ setup(name="epdb",
                    'Programming Language :: Python :: 2',
                    'Programming Language :: Python :: 3',
                    ],
+      keywords='debugger pdb remote',
       entry_points={
             'nose.plugins.0.10': [
                 'epdb-debug = epdb.epdb_nose:Epdb'

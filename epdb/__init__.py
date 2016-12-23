@@ -947,6 +947,7 @@ class Epdb(pdb.Pdb):
         else:
             return pdb.Pdb.complete(self, text, state)
 
+
 log = logging.getLogger('epdb.exception_hook')
 
 
@@ -1055,6 +1056,8 @@ def set_trace_cond(*args, **kw):
         Epdb.set_trace_cond(key, val)
     for arg in args:
         Epdb.set_trace_cond(arg, True)
+
+
 stc = set_trace_cond
 
 
@@ -1072,6 +1075,7 @@ def set_trace(marker='default'):
     """
 
     Epdb().set_trace(marker=marker, skip=1)
+
 
 st = set_trace
 

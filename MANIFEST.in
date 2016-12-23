@@ -1,1 +1,15 @@
-include LICENSE NEWS *.txt
+# include everything in these directories
+graft docs
+graft epdb
+graft test
+
+# include package metafiles
+include AUTHORS.rst
+include CHANGELOG.rst
+include ContributorAgreement.txt
+include LICENSE
+include README.rst
+
+include tox.ini
+
+global-exclude *.py[cod] __pycache__ *.so *.dylib
