@@ -42,7 +42,7 @@ inserting::
 
 or by using the alias ``st``::
 
-    import epdb; epbd.st()
+    import epdb; epdb.st()
 
 To debug code that is either running on a remote system, or in a process that
 isn't attached to your tty you can use epdb in server mode::
