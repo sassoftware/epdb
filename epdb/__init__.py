@@ -268,8 +268,7 @@ class Epdb(pdb.Pdb):
 
     def do_set(self, arg):
         if not arg:
-            keys = list(self._config.keys())
-            keys.sort()
+            keys = sorted(self._config.keys())
             for key in keys:
                 print("%s: %s" % (key, self._config[key]))
         else:
@@ -313,7 +312,7 @@ class Epdb(pdb.Pdb):
                 cond = eval(cond + '\n', globals, locals)
                 # test to be sure that what we code is a
                 # function that can take one arg and return a bool
-                rv = (type(cond) == bool) or bool(cond(1))
+                rv = (isinstance(cond, bool)) or bool(cond(1))
                 self.set_trace_cond(marker, cond)
             except:
                 print(self._reprExc())
@@ -502,8 +501,7 @@ class Epdb(pdb.Pdb):
             self.default(arg)
 
     def _showmethods(self, obj):
-        methods = self._getMembersOfType(obj, 'm')
-        methods.sort()
+        methods = sorted(self._getMembersOfType(obj, 'm'))
         for (methodName, method) in methods:
             try:
                 self._define(method)
@@ -515,13 +513,11 @@ class Epdb(pdb.Pdb):
                 print(prefix + '.' + methodName)
 
     def _showdata(self, obj):
-        data = self._getMembersOfType(obj, 'd')
-        data.sort()
+        data = sorted(self._getMembersOfType(obj, 'd'))
         print([x[0] for x in data])
 
     def _showclasses(self, obj):
-        classes = self._getMembersOfType(obj, 'c')
-        classes.sort()
+        classes = sorted(self._getMembersOfType(obj, 'c'))
         for (className, class_) in classes:
             self._define(class_)
             print()
@@ -883,7 +879,7 @@ class Epdb(pdb.Pdb):
         if rv:
             if marker != 'default':
                 self.prompt = '(Epdb [%s]) ' % marker
-            self._set_trace(skip=skip+1)
+            self._set_trace(skip=skip + 1)
         tc[marker] = [cond, curCount]
 
     def do_debug(self, arg):
@@ -1164,8 +1160,8 @@ def _removeQuoteSet(line, quote1, quote2):
         else:
             firstPoint = b[0]
             firstQuote = b[1]
-        secondPoint = line[(firstPoint+ln):].find(firstQuote)
+        secondPoint = line[(firstPoint + ln):].find(firstQuote)
         if secondPoint == -1:
             return None
         secondPoint += firstPoint
-        line = line[:firstPoint] + line[(secondPoint+2*ln):]
+        line = line[:firstPoint] + line[(secondPoint + 2 * ln):]

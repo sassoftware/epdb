@@ -44,6 +44,7 @@ class Epdb(Plugin):
     Provides --epdb and --epdb-failures options that cause the test runner to
     drop into epdb if it encounters an error or failure, respectively.
     """
+
     def options(self, parser, env):
         """Register commandline options.
         """

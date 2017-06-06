@@ -43,9 +43,9 @@ class ECompleter(rlcompleter.Completer):
         matches = []
         n = len(text)
         for list in [
-                     # keyword.kwlist,
-                     # __builtin__.__dict__,
-                     self.namespace]:
+            # keyword.kwlist,
+            # __builtin__.__dict__,
+                self.namespace]:
             for word in list:
                 if word[:n] == text and word != "__builtins__":
                     matches.append(word)

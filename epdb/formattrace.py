@@ -40,35 +40,30 @@ from six.moves.reprlib import Repr
 
 if (sys.version_info > (3, 0)):
     # Python 3 code in this block
-
     # Types for which calling __safe_str__ has side effects
     UNSAFE_TYPES = (
         xmlrpc_client.ServerProxy,
         xmlrpc_client._Method,
-      )
-
+    )
     # Types that should not appear in the output at all
     IGNORED_TYPES = (
         types.FunctionType,
         types.ModuleType,
-      )
+    )
 else:
     # Python 2 code in this block
-
     # Types for which calling __safe_str__ has side effects
     UNSAFE_TYPES = (
         xmlrpc_client.ServerProxy,
         xmlrpc_client.MethodType,
-      )
-
+    )
     # Types that should not appear in the output at all
     IGNORED_TYPES = (
         types.ClassType,
         types.FunctionType,
         types.ModuleType,
         types.TypeType,
-        )
-
+    )
 
 # Set for consumers to hook into for black listing their own classes.
 UNSAFE_TYPE_NAMES = set()
@@ -83,9 +78,7 @@ class TraceRepr(Repr):
         self.maxdict = 20
         self.maxstring = 1600
         self.maxother = 160
-
         self.maxLineLen = 160
-
         self.subsequentIndent = subsequentIndent
         # Pretty-print?
         self._pretty = True
@@ -128,12 +121,10 @@ class TraceRepr(Repr):
             self._pretty = False
             keyrepr = repr1(key, newlevel)
             self._pretty = oldPretty
-
             oldSubsequentIndent = self.subsequentIndent
             self.subsequentIndent += ' ' * 4
             valrepr = repr1(obj[key], newlevel)
             self.subsequentIndent = oldSubsequentIndent
-
             pieces.append('%s: %s' % (keyrepr, valrepr))
         if n > self.maxdict:
             pieces.append('...len=%d...' % n)
@@ -148,17 +139,14 @@ def shouldSafeStr(obj):
     else:
         # New-style instances and non-instances
         cls = type(obj)
-
     if isinstance(obj, UNSAFE_TYPES):
         return False
     if cls.__name__ in UNSAFE_TYPE_NAMES:
         return False
-
     if not hasattr(obj, '__safe_str__'):
         return False
     if not callable(obj.__safe_str__):
         return False
-
     return True
 
 
@@ -228,7 +216,6 @@ def stackToList(stack):
         while stack.tb_next:
             stack = stack.tb_next
         stack = stack.tb_frame
-
     out = []
     while stack:
         out.append(stack)
@@ -251,7 +238,6 @@ def formatTrace(excType, excValue, excTB, stream=sys.stderr, withLocals=True):
 
     for frame in tbStack:
         formatCode(frame, stream)
-
         if withLocals:
             formatLocals(frame, stream)
             stream.write("  %s\n\n" % ("*" * 70))

@@ -62,6 +62,7 @@ class TelnetServerProtocolHandler(telnetlib.Telnet):
         information to local, which should be the master for a pty controlled
         process.
     """
+
     def __init__(self, socket, local):
         telnetlib.Telnet.__init__(self)
         self.sock = socket
@@ -153,7 +154,6 @@ class TelnetRequestHandler(BaseRequestHandler):
 
 
 class TelnetServer(TCPServer):
-
     allow_reuse_address = True
 
     def __init__(self, server_address=None,
@@ -177,7 +177,6 @@ class TelnetServerForCommand(TelnetServer):
 class InvertedTelnetRequestHandler(TelnetRequestHandler):
     def handle(self):
         masterFd, slaveFd = pty.openpty()
-
         try:
             # if we're not in the main thread, this will not work.
             signal.signal(signal.SIGTTOU, signal.SIG_IGN)
@@ -211,6 +210,7 @@ class InvertedTelnetServer(TelnetServer):
         The telnet server can be closed at any time, and when it is
         input and output for the current process will be restored.
     """
+
     def __init__(self, server_address=None,
                  requestHandlerClass=InvertedTelnetRequestHandler):
         TelnetServer.__init__(self, server_address, requestHandlerClass)
@@ -282,13 +282,13 @@ class SocketConnected(Exception):
 
         Used for IntertedTelnetServer
     """
+
     def __init__(self, slaveFd, serverPid):
         self.slaveFd = slaveFd
         self.serverPid = serverPid
 
 
 class SavedFile(object):
-
     def __init__(self, fileno, module, attribute):
         self.fileno = fileno
         self.module = module

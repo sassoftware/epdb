@@ -89,7 +89,7 @@ class TelnetClient(telnetlib.Telnet):
         rows, cols = getTerminalSize()
         out = struct.pack(b'>HH', cols, rows)
         if IAC in out:
-            out.replace(IAC, IAC+IAC)  # escape IAC
+            out.replace(IAC, IAC + IAC)  # escape IAC
         self.sock.sendall(IAC + SB + NAWS + out + IAC + SE)
 
     def write(self, buffer):
@@ -156,6 +156,7 @@ class TelnetClient(telnetlib.Telnet):
 
 def main():
     args = sys.argv[1:]
+
     if len(args) > 2:
         sys.exit("usage: %s [port [host]]" % sys.argv[0])
 
