@@ -65,3 +65,8 @@ connect with the ``host`` or ``port`` keyword arguments::
 
     >>> import epdb
     >>> epdb.connect(host='some.host.com', port=8888)
+
+Known Issues
+============
+
+* epdb.serve() does not work with python 2.7.5 [#7]
