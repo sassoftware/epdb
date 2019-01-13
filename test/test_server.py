@@ -26,6 +26,25 @@ import mock
 import os
 
 from epdb import epdb_server
+import epdb
+
+
+class EpdbServerTest(TestCase):
+
+    @mock.patch("epdb.epdb_server")
+    def test_nonsilent(self, _server):
+        e = epdb.Epdb()
+        with mock.patch("epdb.print") as _print:
+            e.serve()
+        _print.assert_called_with("Serving on port 8080")
+
+    @mock.patch("epdb.epdb_server")
+    def test_silent(self, _server):
+        e = epdb.Epdb()
+        e.silent_server = True
+        with mock.patch("epdb.print") as _print:
+            e.serve()
+        _print.assert_not_called()
 
 
 class TelnetServerProtocolHandlerTest(TestCase):

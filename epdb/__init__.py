@@ -103,6 +103,7 @@ class Epdb(pdb.Pdb):
         self._completer = erlcompleter and erlcompleter.ECompleter() or None
         self._oldHistory = []
         self.prompt = '(Epdb) '
+        self.silent_server = False
 
     def store_old_history(self):
         historyLen = self._readline.get_current_history_length()
@@ -162,7 +163,8 @@ class Epdb(pdb.Pdb):
 
         def _new_telnet_server(self, port=SERVE_PORT, find_unused_port=True):
             if not find_unused_port:
-                print('Serving on port %s' % port)
+                if not self.silent_server:
+                    print('Serving on port %s' % port)
                 return epdb_server.InvertedTelnetServer(('', port))
             server = None
             for i in range(self.PORT_RETRIES):
@@ -176,7 +178,8 @@ class Epdb(pdb.Pdb):
                     break
             else:  # for: we ran out of retries; re-raise the last error
                 raise
-            print('Serving on port %s' % port)
+            if not self.silent_server:
+                print('Serving on port %s' % port)
             return server
 
         def serve_post_mortem(self, t, exc_type=None, exc_msg=None,
@@ -1102,11 +1105,15 @@ def set_trace(marker='default'):
 st = set_trace
 
 if hasTelnet:
-    def serve(port=SERVE_PORT, find_unused_port=True):
-        Epdb().serve(port, find_unused_port=find_unused_port)
+    def serve(port=SERVE_PORT, find_unused_port=True, silent=False):
+        e = Epdb()
+        e.silent_server = silent
+        e.serve(port, find_unused_port=find_unused_port and not silent)
 
-    def serve_post_mortem(t, exc_type=None, exc_msg=None, port=SERVE_PORT, find_unused_port=True):
-        Epdb().serve_post_mortem(t, exc_type, exc_msg, port, find_unused_port=find_unused_port)
+    def serve_post_mortem(t, exc_type=None, exc_msg=None, port=SERVE_PORT, find_unused_port=True, silent=False):
+        e = Epdb()
+        e.silent_server = silent
+        e.serve_post_mortem(t, exc_type, exc_msg, port, find_unused_port=find_unused_port and not silent)
 
     def connect(host='localhost', port=SERVE_PORT):
         t = epdb_client.TelnetClient(host, port)
