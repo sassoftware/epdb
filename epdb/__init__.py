@@ -27,6 +27,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
 
+import errno
 import inspect
 import pdb
 import os
@@ -88,6 +89,9 @@ class Epdb(pdb.Pdb):
     # used to track the number of times a set_trace has been seen
     trace_counts = {'default': [True, 0]}
     _server = None
+    _port = None
+
+    PORT_RETRIES = 100
 
     def __init__(self):
         self._exc_type = None
@@ -143,23 +147,41 @@ class Epdb(pdb.Pdb):
     if hasTelnet:
         # telnet server support.
         # if enabled, you can serve a epdb session.
-        def serve(self, port=SERVE_PORT):
-            if not Epdb._server:
-                print('Serving on port %s' % port)
-                Epdb._server = epdb_server.InvertedTelnetServer(('', port))
-                Epdb._server.handle_request()
-                Epdb._port = port
-                # TelnetServer changes sys.stdout so copy it back here again.
-                self.stdout = sys.stdout
+        def serve(self, port=SERVE_PORT, find_unused_port=True):
+            self._serve(port=port, find_unused_port=find_unused_port)
             self.set_trace(skip=2)
 
-        def serve_post_mortem(self, t, exc_type=None, exc_msg=None,
-                              port=SERVE_PORT):
-            if not Epdb._server:
+        def _serve(self, port=SERVE_PORT, find_unused_port=True):
+            if Epdb._server:
+                return
+            Epdb._server = self._new_telnet_server(port=port, find_unused_port=find_unused_port)
+            Epdb._port = Epdb._server.server_address[1]
+            Epdb._server.handle_request()
+            # TelnetServer changes sys.stdout so copy it back here again.
+            self.stdout = sys.stdout
+
+        def _new_telnet_server(self, port=SERVE_PORT, find_unused_port=True):
+            if not find_unused_port:
                 print('Serving on port %s' % port)
-                Epdb._server = epdb_server.InvertedTelnetServer(('', port))
-                Epdb._server.handle_request()
-                self.stdout = sys.stdout
+                return epdb_server.InvertedTelnetServer(('', port))
+            server = None
+            for i in range(self.PORT_RETRIES):
+                try:
+                    server = epdb_server.InvertedTelnetServer(('', port))
+                except OSError as e:
+                    if e.errno not in [errno.EADDRINUSE, errno.EINVAL]:
+                        raise
+                    port += 1
+                else:
+                    break
+            else:  # for: we ran out of retries; re-raise the last error
+                raise
+            print('Serving on port %s' % port)
+            return server
+
+        def serve_post_mortem(self, t, exc_type=None, exc_msg=None,
+                              port=SERVE_PORT, find_unused_port=True):
+            self._serve(port=port, find_unused_port=find_unused_port)
             self.post_mortem(t, exc_type, exc_msg)
 
         def do_detach(self, arg):
@@ -177,7 +199,7 @@ class Epdb(pdb.Pdb):
             if Epdb._server:
                 print('Ending epdb session - use "detach" to stop serving')
                 Epdb._server.close_request()
-                Epdb._server = None
+                Epdb.reset()
                 return self.do_continue('')
             else:
                 print("Not attached via telnet")
@@ -314,7 +336,7 @@ class Epdb(pdb.Pdb):
                 # function that can take one arg and return a bool
                 rv = (isinstance(cond, bool)) or bool(cond(1))
                 self.set_trace_cond(marker, cond)
-            except:
+            except:  # noqa
                 print(self._reprExc())
     do_tc = do_trace_cond
 
@@ -464,7 +486,7 @@ class Epdb(pdb.Pdb):
             try:
                 code = compile(cmd, '<stdin>', 'single')
                 exec(code, globals, locals)
-            except:
+            except:  # noqa
                 print(self._reprExc())
         finally:
             self.read_history()
@@ -505,7 +527,7 @@ class Epdb(pdb.Pdb):
         for (methodName, method) in methods:
             try:
                 self._define(method)
-            except:
+            except:  # noqa
                 if hasattr(obj, '__name__'):
                     prefix = obj.__name__
                 else:
@@ -538,7 +560,7 @@ class Epdb(pdb.Pdb):
             if fn is None:
                 return True, result
             return True, fn(result)
-        except:
+        except:  # noqa
             if printExc:
                 exc = self._reprExc()
                 print(exc)
@@ -943,6 +965,10 @@ class Epdb(pdb.Pdb):
         else:
             return pdb.Pdb.complete(self, text, state)
 
+    @classmethod
+    def reset(cls):
+        cls._server = cls._port = None
+
 
 log = logging.getLogger('epdb.exception_hook')
 
@@ -1076,11 +1102,11 @@ def set_trace(marker='default'):
 st = set_trace
 
 if hasTelnet:
-    def serve(port=SERVE_PORT):
-        Epdb().serve(port)
+    def serve(port=SERVE_PORT, find_unused_port=True):
+        Epdb().serve(port, find_unused_port=find_unused_port)
 
-    def serve_post_mortem(t, exc_type=None, exc_msg=None, port=SERVE_PORT):
-        Epdb().serve_post_mortem(t, exc_type, exc_msg, port)
+    def serve_post_mortem(t, exc_type=None, exc_msg=None, port=SERVE_PORT, find_unused_port=True):
+        Epdb().serve_post_mortem(t, exc_type, exc_msg, port, find_unused_port=find_unused_port)
 
     def connect(host='localhost', port=SERVE_PORT):
         t = epdb_client.TelnetClient(host, port)

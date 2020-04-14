@@ -180,7 +180,7 @@ class InvertedTelnetRequestHandler(TelnetRequestHandler):
         try:
             # if we're not in the main thread, this will not work.
             signal.signal(signal.SIGTTOU, signal.SIG_IGN)
-        except:
+        except:  # noqa
             pass
         pid = os.fork()
         if pid:
@@ -237,7 +237,7 @@ class InvertedTelnetServer(TelnetServer):
             except SocketConnected as err:
                 self._serve_process(err.slaveFd, err.serverPid)
                 return
-            except Exception as err:
+            except Exception:
                 self.handle_error(request, client_address)
                 self.close_request()
 

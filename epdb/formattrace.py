@@ -166,7 +166,7 @@ def formatCode(frame, stream):
     try:
         try:
             frameInfo = inspect.getframeinfo(frame, context=1)
-        except:
+        except:  # noqa
             frameInfo = inspect.getframeinfo(frame, context=0)
         fileName, lineNo, funcName, text, idx = frameInfo
 
