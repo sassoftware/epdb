@@ -7,6 +7,18 @@ The format is based on `Keep a Changelog <http://keepachangelog.com/>`_ and this
 project adheres to `Semantic Versioning <http://semver.org/>`_ from version
 0.15.1 on.
 
+0.16.0 - 2020-04-14
+-------------------
+
+Added
+~~~~~
+
+* Support for finding an unused port when serving
+* python 3.8 support
+
+Fixed
+~~~~~
+* CTRL+C was attempting to send a string through the socket, instead of a byte array
 
 0.15.1 - 2016-12-22
 -------------------

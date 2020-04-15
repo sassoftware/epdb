@@ -106,21 +106,21 @@ class InvertedTelnetServerTest(TestCase):
         try:
             srv._serve_process(master_fd, 1234)
 
-            self.assertEquals(1234, srv.serverPid)
+            self.assertEqual(1234, srv.serverPid)
 
-            self.assertEquals(
+            self.assertEqual(
                 "stdout", srv.oldStdout.attribute)
-            self.assertEquals(
+            self.assertEqual(
                 "w", srv.oldStdout.fileobj_new.mode)
 
-            self.assertEquals(
+            self.assertEqual(
                 "stderr", srv.oldStderr.attribute)
-            self.assertEquals(
+            self.assertEqual(
                 "w", srv.oldStderr.fileobj_new.mode)
 
-            self.assertEquals(
+            self.assertEqual(
                 "stdin", srv.oldStdin.attribute)
-            self.assertEquals(
+            self.assertEqual(
                 "r", srv.oldStdin.fileobj_new.mode)
 
             _waitpid.assert_not_called()
@@ -131,6 +131,6 @@ class InvertedTelnetServerTest(TestCase):
             srv.close_request()
             _waitpid.assert_called_once_with(1234, 0)
 
-        self.assertEquals(None, old_stdin.fileobj_new)
-        self.assertEquals(None, old_stdout.fileobj_new)
-        self.assertEquals(None, old_stderr.fileobj_new)
+        self.assertEqual(None, old_stdin.fileobj_new)
+        self.assertEqual(None, old_stdout.fileobj_new)
+        self.assertEqual(None, old_stderr.fileobj_new)

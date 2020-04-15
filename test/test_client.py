@@ -46,16 +46,16 @@ class TelnetClientTest(TestCase):
         exp_attr = newattr[:3] + [245]
         _tcsetattr.assert_called_once_with(fd, epdb_client.termios.TCSANOW,
                                            exp_attr)
-        self.assertEquals([
+        self.assertEqual([
             mock.call(fd, epdb_client.fcntl.F_GETFL),
             mock.call(fd, epdb_client.fcntl.F_SETFL,
                       fcntlret.__or__.return_value),
         ], _fcntl.call_args_list)
-        self.assertEquals(_fcntl.return_value, cli.oldFlags)
+        self.assertEqual(_fcntl.return_value, cli.oldFlags)
         fcntlret.__or__.assert_called_once_with(
             epdb_client.os.O_NONBLOCK)
-        self.assertEquals(newattr, cli.oldTerm)
-        self.assertEquals(_fcntl.return_value, cli.oldFlags)
+        self.assertEqual(newattr, cli.oldTerm)
+        self.assertEqual(_fcntl.return_value, cli.oldFlags)
 
     @mock.patch("epdb.epdb_client.fcntl.fcntl")
     @mock.patch("epdb.epdb_client.termios.tcsetattr")
@@ -95,10 +95,10 @@ class TelnetClientTest(TestCase):
         cli = epdb_client.TelnetClient()
         with mock.patch.object(cli, "sock") as sock:
             self.assertRaises(KeyboardInterrupt, cli.ctrl_c, intr, tb)
-            self.assertEquals(
+            self.assertEqual(
                 [
                     mock.call(epdb_client.IAC + epdb_client.IP),
-                    mock.call('close\n'),
+                    mock.call(b'close\n'),
                 ],
                 sock.sendall.call_args_list)
 

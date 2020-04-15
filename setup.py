@@ -36,7 +36,7 @@ def read(*names, **kwargs):
                    encoding=kwargs.get('encoding', 'utf-8')).read()
 
 
-Version = "0.15.1"
+Version = "0.16.0"
 
 install_requires = ["six"]
 
@@ -59,12 +59,12 @@ setup(name="epdb",
                    ],
       keywords='debugger pdb remote',
       entry_points={
-            'nose.plugins.0.10': [
-                'epdb-debug = epdb.epdb_nose:Epdb'
-                ],
-            'console_scripts': [
-                'epdb = epdb.epdb_client:main',
-                ]
-            },
+          'nose.plugins.0.10': [
+              'epdb-debug = epdb.epdb_nose:Epdb',
+          ],
+          'console_scripts': [
+              'epdb = epdb.epdb_client:main',
+          ],
+      },
       install_requires=install_requires,
       )
