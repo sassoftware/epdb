@@ -29,6 +29,7 @@ from __future__ import absolute_import
 
 import errno
 import fcntl
+import locale
 import os
 import select
 import signal
@@ -102,10 +103,12 @@ class TelnetClient(telnetlib.Telnet):
         else:
             telnetlib.Telnet.write(self, buffer)
 
-    def interact(self):
+    def interact(self, encoding=None):
+        encoding = encoding or locale.getpreferredencoding()
         self.set_raw_mode()
         try:
             self.updateTerminalSize()
+            remaining_text = b""
             while not self.eof:
                 readyWriters = []
                 readyReaders = []
@@ -143,13 +146,20 @@ class TelnetClient(telnetlib.Telnet):
                         print('*** Connection closed by remote host ***')
                         break
                     if text:
-                        sys.stdout.write(text.decode('ascii'))
+                        all_text = remaining_text + text
+                        try:
+                            unicode_text = all_text.decode(encoding)
+                            remaining_text = b""
+                        except UnicodeDecodeError as e:
+                            unicode_text = all_text[:e.start].decode(encoding)
+                            remaining_text = all_text[e.start:]
+                        sys.stdout.write(unicode_text)
                         sys.stdout.flush()
                 if sys.stdin in readyReaders and self in readyWriters:
                     line = sys.stdin.read(4096)
                     if not line:
                         break
-                    self.write(line.encode('ascii'))
+                    self.write(line.encode(encoding))
         finally:
             self.restore_terminal()
 
